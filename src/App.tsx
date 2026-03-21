@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProductForm from "./pages/ProductForm";
 import ProductDetail from "./pages/ProductDetail";
+import WarrantyForm from "./pages/WarrantyForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
