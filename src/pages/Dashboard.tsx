@@ -74,7 +74,7 @@ const Dashboard = () => {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-dark">
               <Laptop className="h-5 w-5 text-brand-yellow" />
             </div>
-            <span className="text-lg font-bold tracking-tight">NoteStore</span>
+            <span className="text-lg font-bold tracking-tight">ConectadoStore</span>
           </div>
           <Button
             variant="ghost"
