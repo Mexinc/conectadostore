@@ -315,7 +315,7 @@ const ProductForm = () => {
                 <Input id="connectivity" placeholder="Ex: Wi-Fi 6, Bluetooth 5.0, USB-C, HDMI" value={connectivity} onChange={(e) => setConnectivity(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="weight">Peso</Label>
+                <Label htmlFor="weight">Peso <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input id="weight" placeholder="Ex: 1,4kg" value={weight} onChange={(e) => setWeight(e.target.value)} />
               </div>
               <div className="space-y-2">
