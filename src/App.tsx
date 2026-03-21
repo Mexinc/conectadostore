@@ -47,24 +47,26 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Sonner />
-      <BrowserRouter>
-        <AuthWrapper>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/products/new" element={<ProductForm />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/products/:id/warranty" element={<WarrantyForm />} />
-            <Route path="/products/:id/edit" element={<ProductForm />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthWrapper>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Sonner />
+        <BrowserRouter>
+          <AuthWrapper>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/products/new" element={<ProductForm />} />
+              <Route path="/products/:id" element={<ProductDetail />} />
+              <Route path="/products/:id/warranty" element={<WarrantyForm />} />
+              <Route path="/products/:id/edit" element={<ProductForm />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthWrapper>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
