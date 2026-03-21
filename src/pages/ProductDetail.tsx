@@ -60,6 +60,41 @@ const ProductDetail = () => {
     toast.success(`Texto copiado para ${platform === "whatsapp" ? "WhatsApp" : platform === "olx" ? "OLX" : "Mercado Livre"}!`);
   };
 
+  const [downloading, setDownloading] = useState(false);
+
+  const downloadAllPhotos = async () => {
+    if (!product || product.photos.length === 0) return;
+    setDownloading(true);
+
+    try {
+      for (let i = 0; i < product.photos.length; i++) {
+        const url = product.photos[i];
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const ext = url.split(".").pop()?.split("?")[0] || "jpg";
+        const filename = `${product.name.replace(/[^a-zA-Z0-9]/g, "_")}_foto_${i + 1}.${ext}`;
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        // Small delay between downloads to avoid browser blocking
+        if (i < product.photos.length - 1) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+      toast.success(`${product.photos.length} foto(s) baixada(s)!`);
+    } catch {
+      toast.error("Erro ao baixar fotos");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
