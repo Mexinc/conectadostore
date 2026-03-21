@@ -303,7 +303,7 @@ const ProductForm = () => {
                 <Input id="gpu" placeholder="Ex: Intel Iris Xe / NVIDIA GeForce MX450" value={gpu} onChange={(e) => setGpu(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="battery">Bateria</Label>
+                <Label htmlFor="battery">Bateria <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input id="battery" placeholder="Ex: Duração aproximada de 6h" value={battery} onChange={(e) => setBattery(e.target.value)} />
               </div>
               <div className="space-y-2">
