@@ -122,7 +122,7 @@ const Dashboard = () => {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-            <Laptop className="mb-4 h-12 w-12 text-muted-foreground/40" />
+            <Search className="mb-4 h-12 w-12 text-muted-foreground/40" />
             <p className="text-lg font-medium text-muted-foreground">
               {search ? "Nenhum produto encontrado" : "Nenhum produto cadastrado"}
             </p>
