@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
-import { Plus, Search, LogOut } from "lucide-react";
-import Logo from "@/components/Logo";
+import { Plus, Search, LogOut, Laptop } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
@@ -72,9 +71,10 @@ const Dashboard = () => {
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-36 items-center justify-center rounded-xl bg-brand-dark">
-              <Logo size="sm" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-dark">
+              <Laptop className="h-5 w-5 text-brand-yellow" />
             </div>
+            <span className="text-lg font-bold tracking-tight">NoteStore</span>
           </div>
           <Button
             variant="ghost"
