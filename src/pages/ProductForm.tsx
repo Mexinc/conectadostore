@@ -64,6 +64,7 @@ const SortablePhoto = ({ url, index, onRemove }: { url: string; index: number; o
 const ProductForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isEditing = Boolean(id);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragEnd = (event: DragEndEvent) => {
