@@ -10,31 +10,6 @@ type Product = Tables<"products">;
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-const extractSpec = (description: string, label: string): string | null => {
-  if (label === "processador") {
-    const match = description.match(/(?:i[3579][\s-]?\d{4,5}\w*|Ryzen\s*\d\s*\d{4}\w*|M[1-4]\s*(?:Pro|Max|Ultra)?)/i);
-    return match ? match[0] : null;
-  }
-  if (label === "ram") {
-    const match = description.match(/(\d+\s*GB)\s*(?:RAM|DDR|de\s*RAM)/i);
-    return match ? match[1] + " RAM" : null;
-  }
-  if (label === "armazenamento") {
-    const lower = description.toLowerCase();
-    const match = description.match(/(\d+\s*(?:GB|TB))\s*(?:SSD|NVMe|HD|HDD)/i);
-    if (match) {
-      const type = lower.includes("nvme") ? "NVMe" : lower.includes("ssd") ? "SSD" : "HD";
-      return match[1] + " " + type;
-    }
-    return null;
-  }
-  if (label === "so") {
-    const match = description.match(/Windows\s*\d+\s*\w*|macOS\s*\w*|Linux\s*\w*|Chrome\s*OS/i);
-    return match ? match[0] : null;
-  }
-  return null;
-};
-
 const CatalogProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -53,10 +28,7 @@ const CatalogProduct = () => {
       .eq("status", "available")
       .single()
       .then(({ data, error }) => {
-        if (error || !data) {
-          navigate("/catalogo");
-          return;
-        }
+        if (error || !data) { navigate("/catalogo"); return; }
         setProduct(data);
         setLoading(false);
       });
@@ -83,60 +55,43 @@ const CatalogProduct = () => {
 
   if (!product) return null;
 
-  const proc = extractSpec(product.description, "processador");
-  const ram = extractSpec(product.description, "ram");
-  const storage = extractSpec(product.description, "armazenamento");
-  const so = extractSpec(product.description, "so");
+  const p = product as any;
   const specFields = [
-    { label: "Processador", value: proc },
-    { label: "Memória RAM", value: ram },
-    { label: "Armazenamento", value: storage },
-    { label: "Sistema Operacional", value: so },
+    { label: "Processador", value: p.processor },
+    { label: "Memória RAM", value: p.ram },
+    { label: "Armazenamento", value: p.storage },
+    { label: "Tela", value: p.screen },
+    { label: "Placa de Vídeo", value: p.gpu },
+    { label: "Bateria", value: p.battery },
+    { label: "Sistema Operacional", value: p.os },
+    { label: "Conectividade", value: p.connectivity },
+    { label: "Peso", value: p.weight },
+    { label: "Cor", value: p.color },
+    { label: "Estado de Conservação", value: p.condition },
   ].filter((s) => s.value);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Fullscreen gallery */}
       {fullscreen && product.photos.length > 0 && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/95"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <button
-            onClick={() => setFullscreen(false)}
-            className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30"
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/95" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <button onClick={() => setFullscreen(false)} className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30">
             <X className="h-5 w-5" />
           </button>
-          <img
-            src={product.photos[galleryIndex]}
-            alt={product.name}
-            className="max-h-[90vh] max-w-[90vw] object-contain"
-          />
+          <img src={product.photos[galleryIndex]} alt={product.name} className="max-h-[90vh] max-w-[90vw] object-contain" />
           {product.photos.length > 1 && (
             <>
-              <button
-                onClick={() => setGalleryIndex((i) => (i - 1 + product.photos.length) % product.photos.length)}
-                className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30"
-              >
+              <button onClick={() => setGalleryIndex((i) => (i - 1 + product.photos.length) % product.photos.length)} className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <button
-                onClick={() => setGalleryIndex((i) => (i + 1) % product.photos.length)}
-                className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30"
-              >
+              <button onClick={() => setGalleryIndex((i) => (i + 1) % product.photos.length)} className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30">
                 <ChevronRight className="h-5 w-5" />
               </button>
             </>
           )}
           <div className="absolute bottom-4 flex gap-1.5">
             {product.photos.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setGalleryIndex(i)}
-                className={`h-2 w-2 rounded-full transition-all ${i === galleryIndex ? "bg-brand-yellow w-4" : "bg-background/40"}`}
-              />
+              <button key={i} onClick={() => setGalleryIndex(i)} className={`h-2 w-2 rounded-full transition-all ${i === galleryIndex ? "bg-brand-yellow w-4" : "bg-background/40"}`} />
             ))}
           </div>
         </div>
@@ -144,12 +99,7 @@ const CatalogProduct = () => {
 
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/catalogo")}
-            className="shrink-0"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate("/catalogo")} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
@@ -165,24 +115,12 @@ const CatalogProduct = () => {
         {/* Gallery */}
         {product.photos.length > 0 && (
           <div className="mb-6">
-            <div
-              className="relative aspect-video cursor-pointer overflow-hidden rounded-xl bg-muted"
-              onClick={() => setFullscreen(true)}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <img
-                src={product.photos[galleryIndex]}
-                alt={product.name}
-                className="h-full w-full object-contain"
-              />
+            <div className="relative aspect-video cursor-pointer overflow-hidden rounded-xl bg-muted" onClick={() => setFullscreen(true)} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+              <img src={product.photos[galleryIndex]} alt={product.name} className="h-full w-full object-contain" />
               {product.photos.length > 1 && (
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                   {product.photos.map((_, i) => (
-                    <span
-                      key={i}
-                      className={`h-2 rounded-full transition-all ${i === galleryIndex ? "bg-brand-yellow w-4" : "bg-foreground/30 w-2"}`}
-                    />
+                    <span key={i} className={`h-2 rounded-full transition-all ${i === galleryIndex ? "bg-brand-yellow w-4" : "bg-foreground/30 w-2"}`} />
                   ))}
                 </div>
               )}
@@ -190,13 +128,7 @@ const CatalogProduct = () => {
             {product.photos.length > 1 && (
               <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
                 {product.photos.map((url, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setGalleryIndex(i)}
-                    className={`shrink-0 h-16 w-16 overflow-hidden rounded-lg border-2 transition-all ${
-                      i === galleryIndex ? "border-brand-yellow" : "border-transparent opacity-60 hover:opacity-100"
-                    }`}
-                  >
+                  <button key={i} onClick={() => setGalleryIndex(i)} className={`shrink-0 h-16 w-16 overflow-hidden rounded-lg border-2 transition-all ${i === galleryIndex ? "border-brand-yellow" : "border-transparent opacity-60 hover:opacity-100"}`}>
                     <img src={url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
                   </button>
                 ))}
@@ -209,23 +141,17 @@ const CatalogProduct = () => {
         <div className="space-y-4">
           <div>
             <h1 className="text-xl font-bold text-foreground">{product.name}</h1>
-            <span className="mt-2 inline-block text-2xl font-bold tabular-nums text-foreground">
-              {formatPrice(product.price)}
-            </span>
+            <span className="mt-2 inline-block text-2xl font-bold tabular-nums text-foreground">{formatPrice(product.price)}</span>
           </div>
 
           {/* Specs */}
           {specFields.length > 0 && (
             <div className="rounded-xl bg-muted p-4">
-              <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Especificações
-              </h3>
+              <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Especificações</h3>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {specFields.map((s) => (
                   <div key={s.label} className="rounded-lg bg-card p-3">
-                    <span className="block text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
-                      {s.label}
-                    </span>
+                    <span className="block text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
                     <span className="text-sm font-semibold text-foreground">{s.value}</span>
                   </div>
                 ))}
@@ -234,20 +160,14 @@ const CatalogProduct = () => {
           )}
 
           {/* Description */}
-          <div className="rounded-xl border border-border bg-card p-4">
-            <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Descrição
-            </h3>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-              {product.description || "Sem descrição."}
-            </p>
-          </div>
+          {product.description && (
+            <div className="rounded-xl border border-border bg-card p-4">
+              <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Descrição</h3>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{product.description}</p>
+            </div>
+          )}
 
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate("/catalogo")}
-          >
+          <Button variant="outline" className="w-full" onClick={() => navigate("/catalogo")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar ao catálogo
           </Button>

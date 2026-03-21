@@ -16,37 +16,70 @@ export type Database = {
     Tables: {
       products: {
         Row: {
+          battery: string
+          color: string
+          condition: string
+          connectivity: string
           created_at: string
           description: string
+          gpu: string
           id: string
           name: string
+          os: string
           photos: string[]
           price: number
+          processor: string
+          ram: string
+          screen: string
           status: string
+          storage: string
           updated_at: string
           user_id: string | null
+          weight: string
         }
         Insert: {
+          battery?: string
+          color?: string
+          condition?: string
+          connectivity?: string
           created_at?: string
           description?: string
+          gpu?: string
           id?: string
           name: string
+          os?: string
           photos?: string[]
           price?: number
+          processor?: string
+          ram?: string
+          screen?: string
           status?: string
+          storage?: string
           updated_at?: string
           user_id?: string | null
+          weight?: string
         }
         Update: {
+          battery?: string
+          color?: string
+          condition?: string
+          connectivity?: string
           created_at?: string
           description?: string
+          gpu?: string
           id?: string
           name?: string
+          os?: string
           photos?: string[]
           price?: number
+          processor?: string
+          ram?: string
+          screen?: string
           status?: string
+          storage?: string
           updated_at?: string
           user_id?: string | null
+          weight?: string
         }
         Relationships: []
       }

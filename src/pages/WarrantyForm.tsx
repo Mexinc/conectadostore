@@ -385,12 +385,14 @@ const WarrantyForm = () => {
         return;
       }
 
+      const prod = prodRes.data as any;
       setProduct(prodRes.data);
+      // Use dedicated columns first, fall back to description parsing
       const specs = extractSpecs(prodRes.data.description);
-      setProcessor(specs.processor);
-      setRam(specs.ram);
-      setStorage(specs.storage);
-      setOs(specs.os);
+      setProcessor(prod.processor || specs.processor);
+      setRam(prod.ram || specs.ram);
+      setStorage(prod.storage || specs.storage);
+      setOs(prod.os || specs.os);
 
       if (userRes.data.user?.email) {
         setSellerName(userRes.data.user.email);
