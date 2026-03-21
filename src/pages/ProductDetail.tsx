@@ -276,6 +276,13 @@ const ProductDetail = () => {
             >
               Editar
             </Button>
+            <Button
+              className="flex-1 active:scale-[0.97]"
+              onClick={() => navigate(`/products/${product.id}/warranty`)}
+            >
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Gerar Garantia
+            </Button>
           </div>
         </div>
       </main>
