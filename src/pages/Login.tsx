@@ -29,7 +29,7 @@ const Login = () => {
             <Laptop className="h-7 w-7 text-brand-yellow" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            NoteStore
+            ConectadoStore
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sistema de gerenciamento de produtos
