@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProductForm from "./pages/ProductForm";
 import ProductDetail from "./pages/ProductDetail";
+import WarrantyForm from "./pages/WarrantyForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/products/new" element={<ProductForm />} />
             <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/products/:id/warranty" element={<WarrantyForm />} />
             <Route path="/products/:id/edit" element={<ProductForm />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

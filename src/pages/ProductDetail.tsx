@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download } from "lucide-react";
+import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download, ShieldCheck } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -275,6 +275,13 @@ const ProductDetail = () => {
               onClick={() => navigate(`/products/${product.id}/edit`)}
             >
               Editar
+            </Button>
+            <Button
+              className="flex-1 active:scale-[0.97]"
+              onClick={() => navigate(`/products/${product.id}/warranty`)}
+            >
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              Gerar Garantia
             </Button>
           </div>
         </div>
