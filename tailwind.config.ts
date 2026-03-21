@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -46,6 +49,16 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        brand: {
+          dark: "hsl(var(--brand-dark))",
+          yellow: "hsl(var(--brand-yellow))",
+          "yellow-hover": "hsl(var(--brand-yellow-hover))",
+        },
+        status: {
+          available: "hsl(var(--status-available))",
+          reserved: "hsl(var(--status-reserved))",
+          sold: "hsl(var(--status-sold))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
