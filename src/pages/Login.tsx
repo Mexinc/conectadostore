@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Laptop } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -24,13 +24,10 @@ const Login = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm animate-fade-up">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-dark">
-            <Laptop className="h-7 w-7 text-brand-yellow" />
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4 flex h-16 w-44 items-center justify-center rounded-2xl bg-brand-dark">
+            <Logo size="md" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            NoteStore
-          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sistema de gerenciamento de produtos
           </p>
