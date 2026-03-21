@@ -523,8 +523,8 @@ const WarrantyForm = () => {
       validUntil: w.valid_until,
       sellerName: w.seller_name,
     });
-    const blobUrl = doc.output("bloburl");
-    window.open(blobUrl as string, "_blank");
+    const blobUrl = doc.output("bloburl") as unknown as string;
+    window.open(blobUrl, "_blank");
   };
 
   if (loading) {
