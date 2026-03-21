@@ -248,47 +248,35 @@ const ProductForm = () => {
           <div className="space-y-2">
             <Label>
               Fotos do produto{" "}
-              <span className="text-muted-foreground font-normal">(mínimo 5)</span>
+              <span className="text-muted-foreground font-normal">(mínimo 5 · arraste para reordenar)</span>
             </Label>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-              {photos.map((url, i) => (
-                <div
-                  key={i}
-                  className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted"
-                >
-                  <img
-                    src={url}
-                    alt={`Foto ${i + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(i)}
-                    className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/70 text-background opacity-0 transition-opacity group-hover:opacity-100"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={photos} strategy={rectSortingStrategy}>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  {photos.map((url, i) => (
+                    <SortablePhoto key={url} url={url} index={i} onRemove={removePhoto} />
+                  ))}
+                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 text-muted-foreground transition-colors hover:border-brand-yellow hover:text-foreground">
+                    {uploading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5" />
+                        <span className="mt-1 text-[10px]">Adicionar</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
                 </div>
-              ))}
-              <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 text-muted-foreground transition-colors hover:border-brand-yellow hover:text-foreground">
-                {uploading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <>
-                    <Upload className="h-5 w-5" />
-                    <span className="mt-1 text-[10px]">Adicionar</span>
-                  </>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                  disabled={uploading}
-                />
-              </label>
-            </div>
+              </SortableContext>
+            </DndContext>
           </div>
 
           {/* Name */}
