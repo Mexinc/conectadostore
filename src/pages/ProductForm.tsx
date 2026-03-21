@@ -303,7 +303,7 @@ const ProductForm = () => {
                 <Input id="gpu" placeholder="Ex: Intel Iris Xe / NVIDIA GeForce MX450" value={gpu} onChange={(e) => setGpu(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="battery">Bateria</Label>
+                <Label htmlFor="battery">Bateria <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input id="battery" placeholder="Ex: Duração aproximada de 6h" value={battery} onChange={(e) => setBattery(e.target.value)} />
               </div>
               <div className="space-y-2">
@@ -311,11 +311,11 @@ const ProductForm = () => {
                 <Input id="os" placeholder="Ex: Windows 11 Pro" value={os} onChange={(e) => setOs(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="connectivity">Conectividade</Label>
+                <Label htmlFor="connectivity">Conectividade <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input id="connectivity" placeholder="Ex: Wi-Fi 6, Bluetooth 5.0, USB-C, HDMI" value={connectivity} onChange={(e) => setConnectivity(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="weight">Peso</Label>
+                <Label htmlFor="weight">Peso <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input id="weight" placeholder="Ex: 1,4kg" value={weight} onChange={(e) => setWeight(e.target.value)} />
               </div>
               <div className="space-y-2">
