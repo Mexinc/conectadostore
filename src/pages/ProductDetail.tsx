@@ -264,6 +264,19 @@ const ProductDetail = () => {
                 )}
                 Baixar todas as fotos
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const url = `${window.location.origin}/catalogo/${product.id}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Link do produto copiado!");
+                }}
+                className="active:scale-[0.97] transition-all"
+              >
+                <Link2 className="mr-1.5 h-3.5 w-3.5" />
+                Copiar link do produto
+              </Button>
             </div>
           </div>
 
