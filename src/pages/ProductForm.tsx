@@ -311,7 +311,7 @@ const ProductForm = () => {
                 <Input id="os" placeholder="Ex: Windows 11 Pro" value={os} onChange={(e) => setOs(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="connectivity">Conectividade</Label>
+                <Label htmlFor="connectivity">Conectividade <span className="text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input id="connectivity" placeholder="Ex: Wi-Fi 6, Bluetooth 5.0, USB-C, HDMI" value={connectivity} onChange={(e) => setConnectivity(e.target.value)} />
               </div>
               <div className="space-y-2">
