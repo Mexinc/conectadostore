@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
 
