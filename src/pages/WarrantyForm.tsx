@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, Loader2, FileText } from "lucide-react";
+import { ArrowLeft, Download, Printer, Loader2, FileText, Trash2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import jsPDF from "jspdf";
 
@@ -687,6 +687,21 @@ const WarrantyForm = () => {
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handlePrint(w)} title="Imprimir">
                       <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={async () => {
+                        if (!confirm("Tem certeza que deseja excluir esta garantia?")) return;
+                        const { error } = await supabase.from("warranties").delete().eq("id", w.id);
+                        if (error) { toast.error("Erro ao excluir garantia"); return; }
+                        setWarranties((prev) => prev.filter((x: any) => x.id !== w.id));
+                        toast.success("Garantia excluída!");
+                      }}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
