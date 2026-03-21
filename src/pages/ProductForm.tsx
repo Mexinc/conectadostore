@@ -64,7 +64,20 @@ const SortablePhoto = ({ url, index, onRemove }: { url: string; index: number; o
 const ProductForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditing = Boolean(id);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setPhotos((prev) => {
+        const oldIndex = prev.indexOf(active.id as string);
+        const newIndex = prev.indexOf(over.id as string);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  };
+
+
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
