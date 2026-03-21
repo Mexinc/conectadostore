@@ -50,12 +50,83 @@ export type Database = {
         }
         Relationships: []
       }
+      warranties: {
+        Row: {
+          client_address: string
+          client_cpf: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          equipment_name: string
+          id: string
+          os: string
+          processor: string
+          product_id: string
+          ram: string
+          sale_date: string
+          seller_name: string
+          storage: string
+          user_id: string | null
+          valid_until: string
+          warranty_days: number
+          warranty_number: string
+        }
+        Insert: {
+          client_address: string
+          client_cpf: string
+          client_name: string
+          client_phone: string
+          created_at?: string
+          equipment_name: string
+          id?: string
+          os?: string
+          processor?: string
+          product_id: string
+          ram?: string
+          sale_date?: string
+          seller_name: string
+          storage?: string
+          user_id?: string | null
+          valid_until: string
+          warranty_days?: number
+          warranty_number: string
+        }
+        Update: {
+          client_address?: string
+          client_cpf?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          equipment_name?: string
+          id?: string
+          os?: string
+          processor?: string
+          product_id?: string
+          ram?: string
+          sale_date?: string
+          seller_name?: string
+          storage?: string
+          user_id?: string | null
+          valid_until?: string
+          warranty_days?: number
+          warranty_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranties_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_warranty_number: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
