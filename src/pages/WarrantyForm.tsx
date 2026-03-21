@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, Loader2, FileText } from "lucide-react";
+import { ArrowLeft, Download, Printer, Loader2, FileText, Trash2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import jsPDF from "jspdf";
 
