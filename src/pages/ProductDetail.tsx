@@ -250,6 +250,20 @@ const ProductDetail = () => {
                 <Copy className="mr-1.5 h-3.5 w-3.5" />
                 Mercado Livre
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadAllPhotos}
+                disabled={downloading || product.photos.length === 0}
+                className="active:scale-[0.97] transition-all"
+              >
+                {downloading ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Baixar todas as fotos
+              </Button>
             </div>
           </div>
 
