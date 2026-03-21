@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
-import { Plus, Search, LogOut } from "lucide-react";
-import Logo from "@/components/Logo";
+import { Plus, Search, LogOut, Laptop } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
