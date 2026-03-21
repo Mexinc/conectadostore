@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download, ShieldCheck, Link2 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -263,6 +263,19 @@ const ProductDetail = () => {
                   <Download className="mr-1.5 h-3.5 w-3.5" />
                 )}
                 Baixar todas as fotos
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const url = `${window.location.origin}/catalogo/${product.id}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Link do produto copiado!");
+                }}
+                className="active:scale-[0.97] transition-all"
+              >
+                <Link2 className="mr-1.5 h-3.5 w-3.5" />
+                Copiar link do produto
               </Button>
             </div>
           </div>

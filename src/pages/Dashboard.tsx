@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
-import { Plus, Search, LogOut, Laptop } from "lucide-react";
+import { Plus, Search, LogOut, Laptop, Link2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
@@ -101,13 +101,28 @@ const Dashboard = () => {
               className="pl-9"
             />
           </div>
-          <Button
-            onClick={() => navigate("/products/new")}
-            className="bg-brand-dark text-brand-yellow hover:bg-foreground active:scale-[0.98] transition-all"
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            Novo Produto
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const url = `${window.location.origin}/catalogo`;
+                navigator.clipboard.writeText(url);
+                toast.success("Link do catálogo copiado!");
+              }}
+              className="active:scale-[0.97] transition-all"
+            >
+              <Link2 className="mr-1.5 h-4 w-4" />
+              Copiar link do catálogo
+            </Button>
+            <Button
+              onClick={() => navigate("/products/new")}
+              className="bg-brand-dark text-brand-yellow hover:bg-foreground active:scale-[0.98] transition-all"
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo Produto
+            </Button>
+          </div>
         </div>
 
         {/* Products grid */}

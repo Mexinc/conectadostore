@@ -1,0 +1,1 @@
+CREATE POLICY "Public can view available products" ON public.products FOR SELECT TO anon USING (status = 'available');

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import ProductForm from "./pages/ProductForm";
 import ProductDetail from "./pages/ProductDetail";
 import WarrantyForm from "./pages/WarrantyForm";
+import Catalog from "./pages/Catalog";
+import CatalogProduct from "./pages/CatalogProduct";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,16 +55,19 @@ function App() {
       <TooltipProvider>
         <Sonner />
         <BrowserRouter>
-          <AuthWrapper>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/products/new" element={<ProductForm />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/products/:id/warranty" element={<WarrantyForm />} />
-              <Route path="/products/:id/edit" element={<ProductForm />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthWrapper>
+          <Routes>
+            {/* Public catalog routes */}
+            <Route path="/catalogo" element={<Catalog />} />
+            <Route path="/catalogo/:id" element={<CatalogProduct />} />
+
+            {/* Admin routes (auth required) */}
+            <Route path="/" element={<AuthWrapper><Dashboard /></AuthWrapper>} />
+            <Route path="/products/new" element={<AuthWrapper><ProductForm /></AuthWrapper>} />
+            <Route path="/products/:id" element={<AuthWrapper><ProductDetail /></AuthWrapper>} />
+            <Route path="/products/:id/warranty" element={<AuthWrapper><WarrantyForm /></AuthWrapper>} />
+            <Route path="/products/:id/edit" element={<AuthWrapper><ProductForm /></AuthWrapper>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
