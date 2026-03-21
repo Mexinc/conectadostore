@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -58,6 +58,41 @@ const ProductDetail = () => {
 
     navigator.clipboard.writeText(text);
     toast.success(`Texto copiado para ${platform === "whatsapp" ? "WhatsApp" : platform === "olx" ? "OLX" : "Mercado Livre"}!`);
+  };
+
+  const [downloading, setDownloading] = useState(false);
+
+  const downloadAllPhotos = async () => {
+    if (!product || product.photos.length === 0) return;
+    setDownloading(true);
+
+    try {
+      for (let i = 0; i < product.photos.length; i++) {
+        const url = product.photos[i];
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const ext = url.split(".").pop()?.split("?")[0] || "jpg";
+        const filename = `${product.name.replace(/[^a-zA-Z0-9]/g, "_")}_foto_${i + 1}.${ext}`;
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        // Small delay between downloads to avoid browser blocking
+        if (i < product.photos.length - 1) {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+      toast.success(`${product.photos.length} foto(s) baixada(s)!`);
+    } catch {
+      toast.error("Erro ao baixar fotos");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (loading) {
@@ -214,6 +249,20 @@ const ProductDetail = () => {
               >
                 <Copy className="mr-1.5 h-3.5 w-3.5" />
                 Mercado Livre
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadAllPhotos}
+                disabled={downloading || product.photos.length === 0}
+                className="active:scale-[0.97] transition-all"
+              >
+                {downloading ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Baixar todas as fotos
               </Button>
             </div>
           </div>
