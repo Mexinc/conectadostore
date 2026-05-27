@@ -78,6 +78,7 @@ const ProductForm = () => {
     }
   };
 
+  const [category, setCategory] = useState<string>("notebook");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -87,7 +88,7 @@ const ProductForm = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditing);
 
-  // Spec fields
+  // Shared / Notebook spec fields
   const [processor, setProcessor] = useState("");
   const [ram, setRam] = useState("");
   const [storage, setStorage] = useState("");
@@ -99,6 +100,12 @@ const ProductForm = () => {
   const [weight, setWeight] = useState("");
   const [condition, setCondition] = useState("");
   const [color, setColor] = useState("");
+
+  // iPhone-specific
+  const [imei, setImei] = useState("");
+  const [batteryHealth, setBatteryHealth] = useState("");
+  const [network, setNetwork] = useState("");
+  const [accessories, setAccessories] = useState("");
 
   useEffect(() => {
     if (isEditing && id) {
@@ -113,23 +120,28 @@ const ProductForm = () => {
             navigate("/");
             return;
           }
+          const d = data as any;
+          setCategory(d.category || "notebook");
           setName(data.name);
           setDescription(data.description);
           setPrice(formatCurrency(String(data.price * 100)));
           setStatus(data.status);
           setPhotos(data.photos);
-          // Load specs
-          setProcessor((data as any).processor || "");
-          setRam((data as any).ram || "");
-          setStorage((data as any).storage || "");
-          setScreen((data as any).screen || "");
-          setGpu((data as any).gpu || "");
-          setBattery((data as any).battery || "");
-          setOs((data as any).os || "");
-          setConnectivity((data as any).connectivity || "");
-          setWeight((data as any).weight || "");
-          setCondition((data as any).condition || "");
-          setColor((data as any).color || "");
+          setProcessor(d.processor || "");
+          setRam(d.ram || "");
+          setStorage(d.storage || "");
+          setScreen(d.screen || "");
+          setGpu(d.gpu || "");
+          setBattery(d.battery || "");
+          setOs(d.os || "");
+          setConnectivity(d.connectivity || "");
+          setWeight(d.weight || "");
+          setCondition(d.condition || "");
+          setColor(d.color || "");
+          setImei(d.imei || "");
+          setBatteryHealth(d.battery_health || "");
+          setNetwork(d.network || "");
+          setAccessories(d.accessories || "");
           setLoading(false);
         });
     }
@@ -181,7 +193,8 @@ const ProductForm = () => {
     if (!name.trim()) { toast.error("Nome do produto é obrigatório"); return; }
     setSaving(true);
 
-    const productData = {
+    const productData: any = {
+      category,
       name: name.trim(),
       description: description.trim(),
       price: parsePriceToNumber(price),
@@ -198,6 +211,10 @@ const ProductForm = () => {
       weight: weight.trim(),
       condition,
       color: color.trim(),
+      imei: imei.trim(),
+      battery_health: batteryHealth.trim(),
+      network: network.trim(),
+      accessories: accessories.trim(),
     };
 
     if (isEditing && id) {
@@ -224,6 +241,8 @@ const ProductForm = () => {
     );
   }
 
+  const isIphone = category === "iphone";
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
@@ -237,6 +256,19 @@ const ProductForm = () => {
 
       <main className="mx-auto max-w-2xl px-4 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Category */}
+          <div className="space-y-2">
+            <Label>Categoria</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="notebook">Notebook</SelectItem>
+                <SelectItem value="macbook">Macbook</SelectItem>
+                <SelectItem value="iphone">iPhone</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Photos */}
           <div className="space-y-2">
             <Label>
@@ -268,7 +300,13 @@ const ProductForm = () => {
           {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Nome do produto</Label>
-            <Input id="name" placeholder="Ex: Dell Latitude 7420 i5 16GB 512GB" value={name} onChange={(e) => setName(e.target.value)} required />
+            <Input
+              id="name"
+              placeholder={isIphone ? "Ex: iPhone 13 Pro 256GB Grafite" : "Ex: Dell Latitude 7420 i5 16GB 512GB"}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
 
           {/* Description */}
@@ -281,62 +319,118 @@ const ProductForm = () => {
           <div className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Especificações Técnicas</h3>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="processor">Processador</Label>
-                <Input id="processor" placeholder="Ex: Intel Core i5-1145G7 11ª Geração" value={processor} onChange={(e) => setProcessor(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="ram">Memória RAM</Label>
-                <Input id="ram" placeholder="Ex: 16GB DDR4" value={ram} onChange={(e) => setRam(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="storage">Armazenamento</Label>
-                <Input id="storage" placeholder="Ex: SSD NVMe 512GB" value={storage} onChange={(e) => setStorage(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="screen">Tela</Label>
-                <Input id="screen" placeholder='Ex: 14" Full HD IPS' value={screen} onChange={(e) => setScreen(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gpu">Placa de vídeo <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <Input id="gpu" placeholder="Ex: Intel Iris Xe / NVIDIA GeForce MX450" value={gpu} onChange={(e) => setGpu(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="battery">Bateria <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <Input id="battery" placeholder="Ex: Duração aproximada de 6h" value={battery} onChange={(e) => setBattery(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="os">Sistema Operacional</Label>
-                <Input id="os" placeholder="Ex: Windows 11 Pro" value={os} onChange={(e) => setOs(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="connectivity">Conectividade <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <Input id="connectivity" placeholder="Ex: Wi-Fi 6, Bluetooth 5.0, USB-C, HDMI" value={connectivity} onChange={(e) => setConnectivity(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="weight">Peso <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                <Input id="weight" placeholder="Ex: 1,4kg" value={weight} onChange={(e) => setWeight(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="color">Cor</Label>
-                <Input id="color" placeholder="Ex: Prata, Preto, Cinza" value={color} onChange={(e) => setColor(e.target.value)} />
-              </div>
-            </div>
+            {isIphone ? (
+              <>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name-model">Modelo</Label>
+                    <Input id="name-model" placeholder="Ex: iPhone 13 Pro" value={processor} onChange={(e) => setProcessor(e.target.value)} />
+                    <p className="text-[11px] text-muted-foreground">Será exibido como "Modelo" no catálogo.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="storage">Armazenamento</Label>
+                    <Input id="storage" placeholder="Ex: 256GB" value={storage} onChange={(e) => setStorage(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="color">Cor</Label>
+                    <Input id="color" placeholder="Ex: Grafite, Estelar, Azul Sierra" value={color} onChange={(e) => setColor(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="battery-health">Saúde da bateria (%)</Label>
+                    <Input id="battery-health" placeholder="Ex: 89%" value={batteryHealth} onChange={(e) => setBatteryHealth(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="os">iOS</Label>
+                    <Input id="os" placeholder="Ex: iOS 17.4" value={os} onChange={(e) => setOs(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="network">Rede</Label>
+                    <Input id="network" placeholder="Ex: 4G, 5G" value={network} onChange={(e) => setNetwork(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imei">IMEI</Label>
+                    <Input id="imei" placeholder="Ex: 35XXXXXXXXXXXXX" value={imei} onChange={(e) => setImei(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="accessories">Acompanhamentos</Label>
+                    <Input id="accessories" placeholder="Ex: Caixa, cabo USB-C" value={accessories} onChange={(e) => setAccessories(e.target.value)} />
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label>Estado de conservação</Label>
-              <Select value={condition} onValueChange={setCondition}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Excelente">Excelente</SelectItem>
-                  <SelectItem value="Bom">Bom</SelectItem>
-                  <SelectItem value="Regular">Regular</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label>Estado de conservação</Label>
+                  <Select value={condition} onValueChange={setCondition}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Excelente">Excelente</SelectItem>
+                      <SelectItem value="Bom">Bom</SelectItem>
+                      <SelectItem value="Regular">Regular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="processor">Processador</Label>
+                    <Input id="processor" placeholder="Ex: Intel Core i5-1145G7 11ª Geração" value={processor} onChange={(e) => setProcessor(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ram">Memória RAM</Label>
+                    <Input id="ram" placeholder="Ex: 16GB DDR4" value={ram} onChange={(e) => setRam(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="storage">Armazenamento</Label>
+                    <Input id="storage" placeholder="Ex: SSD NVMe 512GB" value={storage} onChange={(e) => setStorage(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="screen">Tela</Label>
+                    <Input id="screen" placeholder='Ex: 14" Full HD IPS' value={screen} onChange={(e) => setScreen(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gpu">Placa de vídeo <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                    <Input id="gpu" placeholder="Ex: Intel Iris Xe / NVIDIA GeForce MX450" value={gpu} onChange={(e) => setGpu(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="battery">Bateria <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                    <Input id="battery" placeholder="Ex: Duração aproximada de 6h" value={battery} onChange={(e) => setBattery(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="os">Sistema Operacional</Label>
+                    <Input id="os" placeholder="Ex: Windows 11 Pro / macOS Sonoma" value={os} onChange={(e) => setOs(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="connectivity">Conectividade <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                    <Input id="connectivity" placeholder="Ex: Wi-Fi 6, Bluetooth 5.0, USB-C, HDMI" value={connectivity} onChange={(e) => setConnectivity(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Peso <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                    <Input id="weight" placeholder="Ex: 1,4kg" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="color">Cor</Label>
+                    <Input id="color" placeholder="Ex: Prata, Preto, Cinza" value={color} onChange={(e) => setColor(e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Estado de conservação</Label>
+                  <Select value={condition} onValueChange={setCondition}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Excelente">Excelente</SelectItem>
+                      <SelectItem value="Bom">Bom</SelectItem>
+                      <SelectItem value="Regular">Regular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Price */}

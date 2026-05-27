@@ -56,19 +56,33 @@ const CatalogProduct = () => {
   if (!product) return null;
 
   const p = product as any;
-  const specFields = [
-    { label: "Processador", value: p.processor },
-    { label: "Memória RAM", value: p.ram },
-    { label: "Armazenamento", value: p.storage },
-    { label: "Tela", value: p.screen },
-    { label: "Placa de Vídeo", value: p.gpu },
-    { label: "Bateria", value: p.battery },
-    { label: "Sistema Operacional", value: p.os },
-    { label: "Conectividade", value: p.connectivity },
-    { label: "Peso", value: p.weight },
-    { label: "Cor", value: p.color },
-    { label: "Estado de Conservação", value: p.condition },
-  ].filter((s) => s.value);
+  const isIphone = (p.category || "notebook") === "iphone";
+  const specFields = (isIphone
+    ? [
+        { label: "Modelo", value: p.processor },
+        { label: "Armazenamento", value: p.storage },
+        { label: "Cor", value: p.color },
+        { label: "Saúde da Bateria", value: p.battery_health },
+        { label: "iOS", value: p.os },
+        { label: "Rede", value: p.network },
+        { label: "IMEI", value: p.imei },
+        { label: "Acompanhamentos", value: p.accessories },
+        { label: "Estado de Conservação", value: p.condition },
+      ]
+    : [
+        { label: "Processador", value: p.processor },
+        { label: "Memória RAM", value: p.ram },
+        { label: "Armazenamento", value: p.storage },
+        { label: "Tela", value: p.screen },
+        { label: "Placa de Vídeo", value: p.gpu },
+        { label: "Bateria", value: p.battery },
+        { label: "Sistema Operacional", value: p.os },
+        { label: "Conectividade", value: p.connectivity },
+        { label: "Peso", value: p.weight },
+        { label: "Cor", value: p.color },
+        { label: "Estado de Conservação", value: p.condition },
+      ]
+  ).filter((s) => s.value);
 
   return (
     <div className="min-h-screen bg-background">

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Laptop } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -11,10 +12,17 @@ type Product = Tables<"products">;
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+const TABS = [
+  { value: "notebook", label: "Notebooks" },
+  { value: "macbook", label: "Macbooks" },
+  { value: "iphone", label: "iPhones" },
+];
+
 const Catalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<string>("notebook");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,9 +37,11 @@ const Catalog = () => {
       });
   }, []);
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products
+    .filter((p) => ((p as any).category || "notebook") === tab)
+    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const activeLabel = TABS.find((t) => t.value === tab)?.label ?? "Produtos";
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +57,17 @@ const Catalog = () => {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        <h1 className="mb-6 text-2xl font-bold text-foreground">Notebooks</h1>
+        <h1 className="mb-4 text-2xl font-bold text-foreground">{activeLabel}</h1>
+
+        <Tabs value={tab} onValueChange={setTab} className="mb-6">
+          <TabsList className="w-full sm:w-auto">
+            {TABS.map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="flex-1 sm:flex-none">
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         <div className="relative mb-6 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -71,7 +91,10 @@ const Catalog = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((product, index) => {
               const p = product as any;
-              const specs = [p.processor, p.ram, p.storage].filter(Boolean).join(" • ");
+              const isIphone = (p.category || "notebook") === "iphone";
+              const specs = isIphone
+                ? [p.processor, p.storage, p.battery_health && `Bateria ${p.battery_health}`].filter(Boolean).join(" • ")
+                : [p.processor, p.ram, p.storage].filter(Boolean).join(" • ");
 
               return (
                 <div
