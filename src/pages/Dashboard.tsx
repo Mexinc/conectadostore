@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>("notebook");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const navigate = useNavigate();
 
   const fetchProducts = async () => {
