@@ -1,8 +1,23 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronLeft, ChevronRight, X, Loader2, Laptop } from "lucide-react";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Loader2,
+  MessageCircle,
+  Share2,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import CatalogLayout from "@/components/catalog/CatalogLayout";
+import PublicProductCard from "@/components/catalog/PublicProductCard";
+import { buildWhatsappUrl, shortCode } from "@/lib/store-config";
+import { getCategoryLabel, getSubcategoryLabel } from "@/lib/categories";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
@@ -14,6 +29,7 @@ const CatalogProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
+  const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
@@ -21,16 +37,39 @@ const CatalogProduct = () => {
 
   useEffect(() => {
     if (!id) return;
+    setLoading(true);
     supabase
       .from("products")
       .select("*")
       .eq("id", id)
-      .eq("status", "available")
-      .single()
-      .then(({ data, error }) => {
-        if (error || !data) { navigate("/catalogo"); return; }
+      .maybeSingle()
+      .then(async ({ data, error }) => {
+        if (error || !data) {
+          navigate("/catalogo");
+          return;
+        }
         setProduct(data);
         setLoading(false);
+
+        // Best-effort increment view count
+        supabase.rpc("increment_product_views", { _product_id: id }).then(() => {});
+
+        // Related: same subcategory or brand, excluding self, only available
+        const ap = data as any;
+        const orParts: string[] = [];
+        if (ap.subcategory) orParts.push(`subcategory.eq.${ap.subcategory}`);
+        if (ap.brand) orParts.push(`brand.eq.${ap.brand}`);
+        if (orParts.length > 0) {
+          const { data: rel } = await supabase
+            .from("products")
+            .select("*")
+            .eq("status", "available")
+            .neq("id", id)
+            .or(orParts.join(","))
+            .order("views_count", { ascending: false })
+            .limit(4);
+          setRelated(rel || []);
+        }
       });
   }, [id, navigate]);
 
@@ -47,19 +86,48 @@ const CatalogProduct = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <CatalogLayout>
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </CatalogLayout>
     );
   }
 
   if (!product) return null;
 
   const p = product as any;
-  const isIphone = (p.category || "notebook") === "iphone";
+  const isAvailable = product.status === "available";
+  const code = shortCode(product.id);
+
+  const whatsappMsg = `Olá, tenho interesse no produto:
+Produto: ${product.name}
+Modelo: ${p.model || p.processor || "-"}
+Preço: ${formatPrice(product.price)}
+Código: ${code}`;
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product.name, text: product.name, url });
+        return;
+      } catch {
+        /* canceled */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copiado!");
+    } catch {
+      toast.error("Não foi possível copiar o link");
+    }
+  };
+
+  const isIphone = p.subcategory === "iphone" || p.category === "iphone";
   const specFields = (isIphone
     ? [
-        { label: "Modelo", value: p.processor },
+        { label: "Modelo", value: p.model || p.processor },
         { label: "Armazenamento", value: p.storage },
         { label: "Cor", value: p.color },
         { label: "Saúde da Bateria", value: p.battery_health },
@@ -70,6 +138,8 @@ const CatalogProduct = () => {
         { label: "Estado de Conservação", value: p.condition },
       ]
     : [
+        { label: "Marca", value: p.brand },
+        { label: "Modelo", value: p.model },
         { label: "Processador", value: p.processor },
         { label: "Memória RAM", value: p.ram },
         { label: "Armazenamento", value: p.storage },
@@ -85,87 +155,165 @@ const CatalogProduct = () => {
   ).filter((s) => s.value);
 
   return (
-    <div className="min-h-screen bg-background">
+    <CatalogLayout>
       {/* Fullscreen gallery */}
       {fullscreen && product.photos.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/95" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <button onClick={() => setFullscreen(false)} className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/95"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <button
+            onClick={() => setFullscreen(false)}
+            className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30"
+          >
             <X className="h-5 w-5" />
           </button>
-          <img src={product.photos[galleryIndex]} alt={product.name} className="max-h-[90vh] max-w-[90vw] object-contain" />
+          <img
+            src={product.photos[galleryIndex]}
+            alt={product.name}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+          />
           {product.photos.length > 1 && (
             <>
-              <button onClick={() => setGalleryIndex((i) => (i - 1 + product.photos.length) % product.photos.length)} className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30">
+              <button
+                onClick={() =>
+                  setGalleryIndex((i) => (i - 1 + product.photos.length) % product.photos.length)
+                }
+                className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30"
+              >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <button onClick={() => setGalleryIndex((i) => (i + 1) % product.photos.length)} className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30">
+              <button
+                onClick={() => setGalleryIndex((i) => (i + 1) % product.photos.length)}
+                className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-background/20 text-background hover:bg-background/30"
+              >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </>
           )}
-          <div className="absolute bottom-4 flex gap-1.5">
-            {product.photos.map((_, i) => (
-              <button key={i} onClick={() => setGalleryIndex(i)} className={`h-2 w-2 rounded-full transition-all ${i === galleryIndex ? "bg-brand-yellow w-4" : "bg-background/40"}`} />
-            ))}
-          </div>
         </div>
       )}
 
-      <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/catalogo")} className="shrink-0">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-dark">
-              <Laptop className="h-4 w-4 text-brand-yellow" />
-            </div>
-            <span className="text-sm font-bold tracking-tight">ConectadoStore</span>
-          </div>
-        </div>
-      </header>
+      {/* Breadcrumb */}
+      <nav className="mb-4 flex items-center gap-1 text-xs text-muted-foreground">
+        <Link to="/catalogo" className="hover:text-foreground">Início</Link>
+        {p.category && (
+          <>
+            <span>/</span>
+            <Link to={`/catalogo/categoria/${p.category}`} className="hover:text-foreground">
+              {getCategoryLabel(p.category)}
+            </Link>
+          </>
+        )}
+        {p.subcategory && (
+          <>
+            <span>/</span>
+            <Link
+              to={`/catalogo/categoria/${p.category}/${p.subcategory}`}
+              className="hover:text-foreground"
+            >
+              {getSubcategoryLabel(p.category, p.subcategory)}
+            </Link>
+          </>
+        )}
+      </nav>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 animate-fade-up">
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* Gallery */}
-        {product.photos.length > 0 && (
-          <div className="mb-6">
-            <div className="relative aspect-video cursor-pointer overflow-hidden rounded-xl bg-muted" onClick={() => setFullscreen(true)} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-              <img src={product.photos[galleryIndex]} alt={product.name} className="h-full w-full object-contain" />
+        <div>
+          {product.photos.length > 0 ? (
+            <>
+              <div
+                className="relative aspect-square cursor-pointer overflow-hidden rounded-xl bg-muted"
+                onClick={() => setFullscreen(true)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                <img
+                  src={product.photos[galleryIndex]}
+                  alt={product.name}
+                  className="h-full w-full object-contain"
+                />
+              </div>
               {product.photos.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {product.photos.map((_, i) => (
-                    <span key={i} className={`h-2 rounded-full transition-all ${i === galleryIndex ? "bg-brand-yellow w-4" : "bg-foreground/30 w-2"}`} />
+                <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                  {product.photos.map((url, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setGalleryIndex(i)}
+                      className={`shrink-0 h-16 w-16 overflow-hidden rounded-lg border-2 transition-all ${
+                        i === galleryIndex
+                          ? "border-brand-yellow"
+                          : "border-transparent opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <img src={url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                    </button>
                   ))}
                 </div>
               )}
-            </div>
-            {product.photos.length > 1 && (
-              <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-                {product.photos.map((url, i) => (
-                  <button key={i} onClick={() => setGalleryIndex(i)} className={`shrink-0 h-16 w-16 overflow-hidden rounded-lg border-2 transition-all ${i === galleryIndex ? "border-brand-yellow" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                    <img src={url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <div className="aspect-square rounded-xl bg-muted" />
+          )}
+        </div>
 
         {/* Info */}
         <div className="space-y-4">
           <div>
-            <h1 className="text-xl font-bold text-foreground">{product.name}</h1>
-            <span className="mt-2 inline-block text-2xl font-bold tabular-nums text-foreground">{formatPrice(product.price)}</span>
+            <div className="mb-2 flex items-center gap-2">
+              {isAvailable ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/15 px-2.5 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Disponível
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                  <XCircle className="h-3.5 w-3.5" /> Esgotado
+                </span>
+              )}
+              {p.brand && (
+                <span className="text-xs font-medium text-muted-foreground">{p.brand}</span>
+              )}
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
+            <p className="mt-1 text-xs text-muted-foreground">Código: {code}</p>
+            <p className="mt-3 text-3xl font-bold tabular-nums text-foreground">
+              {formatPrice(product.price)}
+            </p>
           </div>
 
-          {/* Specs */}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              asChild
+              disabled={!isAvailable}
+              className="flex-1 bg-green-600 text-white hover:bg-green-700 active:scale-[0.98] transition-all"
+            >
+              <a
+                href={isAvailable ? buildWhatsappUrl(whatsappMsg) : undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Comprar pelo WhatsApp
+              </a>
+            </Button>
+            <Button variant="outline" onClick={handleShare}>
+              <Share2 className="mr-2 h-4 w-4" /> Compartilhar
+            </Button>
+          </div>
+
           {specFields.length > 0 && (
             <div className="rounded-xl bg-muted p-4">
-              <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Especificações</h3>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Especificações
+              </h3>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {specFields.map((s) => (
                   <div key={s.label} className="rounded-lg bg-card p-3">
-                    <span className="block text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">{s.label}</span>
+                    <span className="block text-[0.65rem] font-medium uppercase tracking-wider text-muted-foreground">
+                      {s.label}
+                    </span>
                     <span className="text-sm font-semibold text-foreground">{s.value}</span>
                   </div>
                 ))}
@@ -173,21 +321,34 @@ const CatalogProduct = () => {
             </div>
           )}
 
-          {/* Description */}
           {product.description && (
             <div className="rounded-xl border border-border bg-card p-4">
-              <h3 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Descrição</h3>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{product.description}</p>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Descrição
+              </h3>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                {product.description}
+              </p>
             </div>
           )}
 
-          <Button variant="outline" className="w-full" onClick={() => navigate("/catalogo")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar ao catálogo
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
           </Button>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {related.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-4 text-lg font-bold text-foreground">Produtos relacionados</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((r) => (
+              <PublicProductCard key={r.id} product={r} />
+            ))}
+          </div>
+        </section>
+      )}
+    </CatalogLayout>
   );
 };
 
