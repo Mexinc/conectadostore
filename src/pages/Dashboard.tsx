@@ -169,9 +169,11 @@ const Dashboard = () => {
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
             <Search className="mb-4 h-12 w-12 text-muted-foreground/40" />
             <p className="text-lg font-medium text-muted-foreground">
-              {search ? "Nenhum produto encontrado" : "Nenhum produto cadastrado nesta categoria"}
+              {search || statusFilter !== "all"
+                ? "Nenhum produto encontrado"
+                : "Nenhum produto cadastrado nesta categoria"}
             </p>
-            {!search && (
+            {!search && statusFilter === "all" && (
               <Button
                 onClick={() => navigate("/products/new")}
                 variant="outline"
