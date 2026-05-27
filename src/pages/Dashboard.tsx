@@ -1,28 +1,51 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import ProductCard from "@/components/ProductCard";
-import { Plus, Search, LogOut, Laptop, Link2, Filter } from "lucide-react";
+import {
+  Plus,
+  Search,
+  LogOut,
+  Laptop,
+  Link2,
+  Filter,
+  Eye,
+  Sparkles,
+  Pencil,
+  Trash2,
+  Star,
+} from "lucide-react";
+import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
+import { CATEGORIES, getCategoryLabel, getSubcategoryLabel } from "@/lib/categories";
 
 type Product = Tables<"products">;
 
 const TABS = [
-  { value: "notebook", label: "Notebooks" },
-  { value: "macbook", label: "Macbooks" },
-  { value: "iphone", label: "iPhones" },
+  { value: "all", label: "Todos" },
+  ...CATEGORIES.map((c) => ({ value: c.key, label: c.label })),
+  { value: "__featured", label: "Destaques" },
+  { value: "__top", label: "Mais vistos" },
 ];
+
+const formatPrice = (value: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
 const Dashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<string>("notebook");
+  const [tab, setTab] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const navigate = useNavigate();
 
@@ -32,12 +55,8 @@ const Dashboard = () => {
       .from("products")
       .select("*")
       .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Erro ao carregar produtos");
-    } else {
-      setProducts(data || []);
-    }
+    if (error) toast.error("Erro ao carregar produtos");
+    else setProducts(data || []);
     setLoading(false);
   };
 
@@ -48,21 +67,37 @@ const Dashboard = () => {
   const handleDelete = async (id: string) => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
+    if (!window.confirm(`Excluir "${product.name}"?`)) return;
 
     if (product.photos.length > 0) {
-      const paths = product.photos.map((url) => {
-        const parts = url.split("/product-photos/");
-        return parts[parts.length - 1];
-      });
+      const paths = product.photos.map((url) => url.split("/product-photos/").pop()!).filter(Boolean);
       await supabase.storage.from("product-photos").remove(paths);
     }
-
     const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) {
-      toast.error("Erro ao excluir produto");
-    } else {
+    if (error) toast.error("Erro ao excluir produto");
+    else {
       toast.success("Produto excluído");
       fetchProducts();
+    }
+  };
+
+  const handleQuickStatus = async (id: string, newStatus: string) => {
+    const { error } = await supabase.from("products").update({ status: newStatus }).eq("id", id);
+    if (error) toast.error("Erro ao atualizar status");
+    else {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+      toast.success("Status atualizado");
+    }
+  };
+
+  const handleToggleFeatured = async (id: string, current: boolean) => {
+    const { error } = await supabase.from("products").update({ is_featured: !current } as any).eq("id", id);
+    if (error) toast.error("Erro ao atualizar destaque");
+    else {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? ({ ...p, is_featured: !current } as any) : p))
+      );
+      toast.success(!current ? "Marcado como destaque" : "Removido dos destaques");
     }
   };
 
@@ -70,15 +105,35 @@ const Dashboard = () => {
     await supabase.auth.signOut();
   };
 
-  const filtered = products
-    .filter((p) => ((p as any).category || "notebook") === tab)
-    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
-    .filter((p) => statusFilter === "all" || p.status === statusFilter);
+  const filtered = useMemo(() => {
+    let list = products;
+
+    if (tab === "__featured") {
+      list = list.filter((p) => (p as any).is_featured);
+    } else if (tab === "__top") {
+      list = [...list].sort((a, b) => ((b as any).views_count || 0) - ((a as any).views_count || 0));
+    } else if (tab !== "all") {
+      list = list.filter((p) => ((p as any).category || "notebook") === tab);
+    }
+
+    const q = search.toLowerCase().trim();
+    if (q) {
+      list = list.filter((p) => {
+        const ap = p as any;
+        return [p.name, ap.brand, ap.model, ap.subcategory, p.description]
+          .filter(Boolean)
+          .some((v: string) => v.toLowerCase().includes(q));
+      });
+    }
+
+    if (statusFilter !== "all") list = list.filter((p) => p.status === statusFilter);
+    return list;
+  }, [products, tab, search, statusFilter]);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-dark">
               <Laptop className="h-5 w-5 text-brand-yellow" />
@@ -97,11 +152,11 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto max-w-7xl px-4 py-6">
         <Tabs value={tab} onValueChange={setTab} className="mb-4">
-          <TabsList className="w-full sm:w-auto">
+          <TabsList className="w-full flex-wrap h-auto justify-start gap-1 sm:w-auto">
             {TABS.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="flex-1 sm:flex-none">
+              <TabsTrigger key={t.value} value={t.value} className="text-xs sm:text-sm">
                 {t.label}
               </TabsTrigger>
             ))}
@@ -113,7 +168,7 @@ const Dashboard = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar produto..."
+                placeholder="Buscar nome, marca, modelo…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -144,7 +199,7 @@ const Dashboard = () => {
               className="active:scale-[0.97] transition-all"
             >
               <Link2 className="mr-1.5 h-4 w-4" />
-              Copiar link do catálogo
+              Copiar link
             </Button>
             <Button
               onClick={() => navigate("/products/new")}
@@ -157,48 +212,137 @@ const Dashboard = () => {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-72 animate-pulse rounded-xl bg-muted"
-              />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-72 animate-pulse rounded-xl bg-muted" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
             <Search className="mb-4 h-12 w-12 text-muted-foreground/40" />
             <p className="text-lg font-medium text-muted-foreground">
-              {search || statusFilter !== "all"
+              {search || statusFilter !== "all" || tab !== "all"
                 ? "Nenhum produto encontrado"
-                : "Nenhum produto cadastrado nesta categoria"}
+                : "Nenhum produto cadastrado"}
             </p>
-            {!search && statusFilter === "all" && (
-              <Button
-                onClick={() => navigate("/products/new")}
-                variant="outline"
-                className="mt-4"
-              >
+            {!search && statusFilter === "all" && tab === "all" && (
+              <Button onClick={() => navigate("/products/new")} variant="outline" className="mt-4">
                 Cadastrar primeiro produto
               </Button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-fade-up"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <ProductCard
-                  product={product}
-                  onEdit={() => navigate(`/products/${product.id}/edit`)}
-                  onDelete={() => handleDelete(product.id)}
-                  onClick={() => navigate(`/products/${product.id}`)}
-                />
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filtered.map((product, index) => {
+              const ap = product as any;
+              return (
+                <div
+                  key={product.id}
+                  className="animate-fade-up group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
+                  style={{ animationDelay: `${index * 40}ms` }}
+                >
+                  <div
+                    className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-muted"
+                    onClick={() => navigate(`/products/${product.id}`)}
+                  >
+                    {product.photos.length > 0 ? (
+                      <img
+                        src={product.photos[0]}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm text-muted-foreground/40">
+                        Sem foto
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2">
+                      <StatusBadge status={product.status} />
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFeatured(product.id, Boolean(ap.is_featured));
+                      }}
+                      className={`absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
+                        ap.is_featured
+                          ? "border-brand-yellow bg-brand-yellow text-brand-dark"
+                          : "border-border bg-background/80 text-muted-foreground hover:text-foreground"
+                      }`}
+                      title={ap.is_featured ? "Remover destaque" : "Marcar como destaque"}
+                    >
+                      <Star className={`h-3.5 w-3.5 ${ap.is_featured ? "fill-current" : ""}`} />
+                    </button>
+                  </div>
+
+                  <div className="p-4">
+                    <div className="mb-1 flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <span>{getCategoryLabel(ap.category || "notebook")}</span>
+                      {ap.subcategory && (
+                        <>
+                          <span>·</span>
+                          <span>{getSubcategoryLabel(ap.category, ap.subcategory)}</span>
+                        </>
+                      )}
+                    </div>
+                    <h3
+                      className="cursor-pointer truncate text-sm font-semibold text-foreground hover:text-brand-dark"
+                      onClick={() => navigate(`/products/${product.id}`)}
+                    >
+                      {product.name}
+                    </h3>
+                    {(ap.brand || ap.model) && (
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                        {[ap.brand, ap.model].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className="text-base font-bold tabular-nums text-foreground">
+                        {formatPrice(product.price)}
+                      </span>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Eye className="h-3 w-3" />
+                        <span className="tabular-nums">{ap.views_count ?? 0}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <Select
+                        value={product.status}
+                        onValueChange={(v) => handleQuickStatus(product.id, v)}
+                      >
+                        <SelectTrigger className="h-8 flex-1 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="available">Disponível</SelectItem>
+                          <SelectItem value="reserved">Reservado</SelectItem>
+                          <SelectItem value="sold">Vendido</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => navigate(`/products/${product.id}/edit`)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>

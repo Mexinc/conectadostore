@@ -12,6 +12,7 @@ import ProductDetail from "./pages/ProductDetail";
 import WarrantyForm from "./pages/WarrantyForm";
 import Catalog from "./pages/Catalog";
 import CatalogProduct from "./pages/CatalogProduct";
+import CatalogListing from "./pages/CatalogListing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,9 @@ function App() {
           <Routes>
             {/* Public catalog routes */}
             <Route path="/catalogo" element={<Catalog />} />
+            <Route path="/catalogo/buscar" element={<CatalogListing mode="search" />} />
+            <Route path="/catalogo/categoria/:category" element={<CatalogListing mode="category" />} />
+            <Route path="/catalogo/categoria/:category/:subcategory" element={<CatalogListing mode="category" />} />
             <Route path="/catalogo/:id" element={<CatalogProduct />} />
 
             {/* Admin routes (auth required) */}
