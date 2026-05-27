@@ -5,7 +5,7 @@ import CatalogLayout from "@/components/catalog/CatalogLayout";
 import PublicProductCard from "@/components/catalog/PublicProductCard";
 import { CATEGORIES } from "@/lib/categories";
 import type { Tables } from "@/integrations/supabase/types";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 type Product = Tables<"products">;
 

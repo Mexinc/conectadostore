@@ -20,7 +20,6 @@ import {
   Link2,
   Filter,
   Eye,
-  Sparkles,
   Pencil,
   Trash2,
   Star,
