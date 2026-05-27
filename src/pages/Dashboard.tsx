@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
-import { Plus, Search, LogOut, Laptop, Link2 } from "lucide-react";
+import { Plus, Search, LogOut, Laptop, Link2, Filter } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<string>("notebook");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const navigate = useNavigate();
 
   const fetchProducts = async () => {
@@ -70,7 +72,8 @@ const Dashboard = () => {
 
   const filtered = products
     .filter((p) => ((p as any).category || "notebook") === tab)
-    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
+    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((p) => statusFilter === "all" || p.status === statusFilter);
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,14 +109,28 @@ const Dashboard = () => {
         </Tabs>
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar produto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-1 max-w-md gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar produto..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px]">
+                <Filter className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="available">Disponível</SelectItem>
+                <SelectItem value="reserved">Reservado</SelectItem>
+                <SelectItem value="sold">Vendido</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2">
             <Button
@@ -152,9 +169,11 @@ const Dashboard = () => {
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
             <Search className="mb-4 h-12 w-12 text-muted-foreground/40" />
             <p className="text-lg font-medium text-muted-foreground">
-              {search ? "Nenhum produto encontrado" : "Nenhum produto cadastrado nesta categoria"}
+              {search || statusFilter !== "all"
+                ? "Nenhum produto encontrado"
+                : "Nenhum produto cadastrado nesta categoria"}
             </p>
-            {!search && (
+            {!search && statusFilter === "all" && (
               <Button
                 onClick={() => navigate("/products/new")}
                 variant="outline"
