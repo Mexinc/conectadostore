@@ -1,0 +1,13 @@
+ALTER TABLE public.products
+  ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT 'notebook',
+  ADD COLUMN IF NOT EXISTS imei text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS battery_health text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS network text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS accessories text NOT NULL DEFAULT '';
+
+ALTER TABLE public.warranties
+  ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT 'notebook',
+  ADD COLUMN IF NOT EXISTS imei text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS battery_health text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS network text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS accessories text NOT NULL DEFAULT '';
