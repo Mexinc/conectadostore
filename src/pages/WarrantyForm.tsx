@@ -400,7 +400,14 @@ const WarrantyForm = () => {
 
       const prod = prodRes.data as any;
       setProduct(prodRes.data);
-      setCategory(prod.category || "notebook");
+      // Normalize for warranty purposes: Apple iPhone/MacBook use legacy keys
+      const normalizedCategory =
+        prod.subcategory === "iphone"
+          ? "iphone"
+          : prod.subcategory === "macbook"
+          ? "macbook"
+          : prod.category || "notebook";
+      setCategory(normalizedCategory);
       setProcessor(prod.processor || "");
       setRam(prod.ram || "");
       setStorage(prod.storage || "");

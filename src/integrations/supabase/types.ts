@@ -19,6 +19,7 @@ export type Database = {
           accessories: string
           battery: string
           battery_health: string
+          brand: string
           category: string
           color: string
           condition: string
@@ -28,6 +29,8 @@ export type Database = {
           gpu: string
           id: string
           imei: string
+          is_featured: boolean
+          model: string
           name: string
           network: string
           os: string
@@ -38,14 +41,17 @@ export type Database = {
           screen: string
           status: string
           storage: string
+          subcategory: string
           updated_at: string
           user_id: string | null
+          views_count: number
           weight: string
         }
         Insert: {
           accessories?: string
           battery?: string
           battery_health?: string
+          brand?: string
           category?: string
           color?: string
           condition?: string
@@ -55,6 +61,8 @@ export type Database = {
           gpu?: string
           id?: string
           imei?: string
+          is_featured?: boolean
+          model?: string
           name: string
           network?: string
           os?: string
@@ -65,14 +73,17 @@ export type Database = {
           screen?: string
           status?: string
           storage?: string
+          subcategory?: string
           updated_at?: string
           user_id?: string | null
+          views_count?: number
           weight?: string
         }
         Update: {
           accessories?: string
           battery?: string
           battery_health?: string
+          brand?: string
           category?: string
           color?: string
           condition?: string
@@ -82,6 +93,8 @@ export type Database = {
           gpu?: string
           id?: string
           imei?: string
+          is_featured?: boolean
+          model?: string
           name?: string
           network?: string
           os?: string
@@ -92,8 +105,10 @@ export type Database = {
           screen?: string
           status?: string
           storage?: string
+          subcategory?: string
           updated_at?: string
           user_id?: string | null
+          views_count?: number
           weight?: string
         }
         Relationships: []
@@ -217,6 +232,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_product_views: {
+        Args: { _product_id: string }
+        Returns: undefined
       }
     }
     Enums: {
