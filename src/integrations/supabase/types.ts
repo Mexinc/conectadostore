@@ -16,7 +16,10 @@ export type Database = {
     Tables: {
       products: {
         Row: {
+          accessories: string
           battery: string
+          battery_health: string
+          category: string
           color: string
           condition: string
           connectivity: string
@@ -24,7 +27,9 @@ export type Database = {
           description: string
           gpu: string
           id: string
+          imei: string
           name: string
+          network: string
           os: string
           photos: string[]
           price: number
@@ -38,7 +43,10 @@ export type Database = {
           weight: string
         }
         Insert: {
+          accessories?: string
           battery?: string
+          battery_health?: string
+          category?: string
           color?: string
           condition?: string
           connectivity?: string
@@ -46,7 +54,9 @@ export type Database = {
           description?: string
           gpu?: string
           id?: string
+          imei?: string
           name: string
+          network?: string
           os?: string
           photos?: string[]
           price?: number
@@ -60,7 +70,10 @@ export type Database = {
           weight?: string
         }
         Update: {
+          accessories?: string
           battery?: string
+          battery_health?: string
+          category?: string
           color?: string
           condition?: string
           connectivity?: string
@@ -68,7 +81,9 @@ export type Database = {
           description?: string
           gpu?: string
           id?: string
+          imei?: string
           name?: string
+          network?: string
           os?: string
           photos?: string[]
           price?: number
@@ -85,6 +100,9 @@ export type Database = {
       }
       warranties: {
         Row: {
+          accessories: string
+          battery_health: string
+          category: string
           client_address: string
           client_cpf: string
           client_name: string
@@ -92,6 +110,8 @@ export type Database = {
           created_at: string
           equipment_name: string
           id: string
+          imei: string
+          network: string
           os: string
           processor: string
           product_id: string
@@ -105,6 +125,9 @@ export type Database = {
           warranty_number: string
         }
         Insert: {
+          accessories?: string
+          battery_health?: string
+          category?: string
           client_address: string
           client_cpf: string
           client_name: string
@@ -112,6 +135,8 @@ export type Database = {
           created_at?: string
           equipment_name: string
           id?: string
+          imei?: string
+          network?: string
           os?: string
           processor?: string
           product_id: string
@@ -125,6 +150,9 @@ export type Database = {
           warranty_number: string
         }
         Update: {
+          accessories?: string
+          battery_health?: string
+          category?: string
           client_address?: string
           client_cpf?: string
           client_name?: string
@@ -132,6 +160,8 @@ export type Database = {
           created_at?: string
           equipment_name?: string
           id?: string
+          imei?: string
+          network?: string
           os?: string
           processor?: string
           product_id?: string

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ProductCard from "@/components/ProductCard";
 import { Plus, Search, LogOut, Laptop, Link2 } from "lucide-react";
@@ -10,10 +11,17 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
 
+const TABS = [
+  { value: "notebook", label: "Notebooks" },
+  { value: "macbook", label: "Macbooks" },
+  { value: "iphone", label: "iPhones" },
+];
+
 const Dashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<string>("notebook");
   const navigate = useNavigate();
 
   const fetchProducts = async () => {
@@ -39,7 +47,6 @@ const Dashboard = () => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
 
-    // Delete photos from storage
     if (product.photos.length > 0) {
       const paths = product.photos.map((url) => {
         const parts = url.split("/product-photos/");
@@ -61,13 +68,12 @@ const Dashboard = () => {
     await supabase.auth.signOut();
   };
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products
+    .filter((p) => ((p as any).category || "notebook") === tab)
+    .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
@@ -88,9 +94,17 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main */}
       <main className="mx-auto max-w-6xl px-4 py-6">
-        {/* Actions bar */}
+        <Tabs value={tab} onValueChange={setTab} className="mb-4">
+          <TabsList className="w-full sm:w-auto">
+            {TABS.map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="flex-1 sm:flex-none">
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -125,7 +139,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Products grid */}
         {loading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
@@ -139,7 +152,7 @@ const Dashboard = () => {
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
             <Search className="mb-4 h-12 w-12 text-muted-foreground/40" />
             <p className="text-lg font-medium text-muted-foreground">
-              {search ? "Nenhum produto encontrado" : "Nenhum produto cadastrado"}
+              {search ? "Nenhum produto encontrado" : "Nenhum produto cadastrado nesta categoria"}
             </p>
             {!search && (
               <Button

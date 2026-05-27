@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, Loader2, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Printer, Loader2, Trash2 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import jsPDF from "jspdf";
 
@@ -36,44 +36,6 @@ const addDays = (dateStr: string, days: number) => {
   return d.toISOString().split("T")[0];
 };
 
-function extractSpec(description: string, patterns: RegExp[], fallback = "Não informado") {
-  for (const p of patterns) {
-    const m = description.match(p);
-    if (m) return m[0];
-  }
-  return fallback;
-}
-
-function extractSpecs(desc: string) {
-  const d = desc || "";
-  const processor = extractSpec(d, [
-    /intel\s*core\s*i\d[\w\s\-]*/i,
-    /i[3579][\s-]\d{4,5}\w*/i,
-    /ryzen\s*\d[\w\s\-]*/i,
-    /celeron[\w\s\-]*/i,
-    /pentium[\w\s\-]*/i,
-    /apple\s*m\d[\w\s]*/i,
-  ]);
-  const ram = extractSpec(d, [/\d+\s*gb\s*(ram|ddr\d?)/i, /\d+gb/i]);
-  const storageMatch = extractSpec(d, [
-    /\d+\s*(tb|gb)\s*(nvme|ssd|hd|hdd)/i,
-    /(nvme|ssd|hd|hdd)\s*\d+\s*(tb|gb)/i,
-    /\d+\s*(tb|gb)\s*(de\s*)?(armazenamento|disco)/i,
-  ]);
-  let storageType = "HD";
-  if (/nvme/i.test(storageMatch)) storageType = "NVMe";
-  else if (/ssd/i.test(storageMatch)) storageType = "SSD";
-  const storage = storageMatch !== "Não informado" ? `${storageMatch} (${storageType})` : "Não informado";
-  const os = extractSpec(d, [
-    /windows\s*\d+[\w\s]*/i,
-    /macos[\w\s]*/i,
-    /linux[\w\s]*/i,
-    /chrome\s*os/i,
-    /ubuntu[\w\s.]*/i,
-  ]);
-  return { processor, ram, storage, os };
-}
-
 // ─── PDF Generation ───────────────────────────────────────
 
 const YELLOW = "#FFCC00";
@@ -86,13 +48,13 @@ const GREEN = "#2E7D32";
 const RED = "#C62828";
 const BLUE = "#1565C0";
 
+type SpecRow = { label: string; value: string };
+
 function generateWarrantyPDF(data: {
   warrantyNumber: string;
   equipmentName: string;
-  processor: string;
-  ram: string;
-  storage: string;
-  os: string;
+  category: string;
+  specs: SpecRow[];
   clientName: string;
   clientCpf: string;
   clientPhone: string;
@@ -108,12 +70,10 @@ function generateWarrantyPDF(data: {
   const CW = W - M * 2;
   const today = new Date().toLocaleDateString("pt-BR");
 
-  // ─── Helper functions ───
   const hexToRgb = (hex: string) => {
     const h = hex.replace("#", "");
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)] as [number, number, number];
   };
-
   const setColor = (hex: string) => doc.setTextColor(...hexToRgb(hex));
   const setFill = (hex: string) => doc.setFillColor(...hexToRgb(hex));
   const setDraw = (hex: string) => doc.setDrawColor(...hexToRgb(hex));
@@ -146,50 +106,52 @@ function generateWarrantyPDF(data: {
 
   // ═══════════════════ PAGE 1 ═══════════════════
 
-  // Top yellow stripe
   setFill(YELLOW);
   doc.rect(0, 0, W, 4, "F");
 
-  // Header
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   setColor(BLACK);
   doc.text("CERTIFICADO DE GARANTIA", W / 2, 20, { align: "center" });
 
-  // Yellow line under title
   setDraw(YELLOW);
   doc.setLineWidth(0.8);
   doc.line(M, 24, W - M, 24);
 
-  // Certificate number & date top-right
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   setColor(DARK_GRAY);
   doc.text(`Nº ${data.warrantyNumber}`, W - M, 14, { align: "right" });
   doc.text(`Emissão: ${today}`, W - M, 18, { align: "right" });
 
-  // Body background
   setFill(LIGHT_GRAY);
   doc.rect(0, 28, W, 245, "F");
 
   let y = 32;
 
   // ─── PRODUTO ───
+  const productLabel = data.category === "iphone" ? "APARELHO" : "EQUIPAMENTO";
   y = sectionBar(y, "PRODUTO");
-  y = fieldBox(M, y, CW, "EQUIPAMENTO", data.equipmentName);
-  const row2y = y;
-  fieldBox(M, y, halfW, "PROCESSADOR", data.processor);
-  y = fieldBox(M + halfW + 4, y, halfW, "MEMÓRIA RAM", data.ram);
-  const row3y = y;
-  fieldBox(M, y, halfW, "ARMAZENAMENTO", data.storage);
-  y = fieldBox(M + halfW + 4, y, halfW, "SISTEMA OPERACIONAL", data.os);
+  y = fieldBox(M, y, CW, productLabel, data.equipmentName);
+
+  // Specs grid (2 columns)
+  const filledSpecs = data.specs.filter((s) => s.value);
+  for (let i = 0; i < filledSpecs.length; i += 2) {
+    const left = filledSpecs[i];
+    const right = filledSpecs[i + 1];
+    const rowY = y;
+    fieldBox(M, rowY, right ? halfW : CW, left.label.toUpperCase(), left.value);
+    if (right) {
+      fieldBox(M + halfW + 4, rowY, halfW, right.label.toUpperCase(), right.value);
+    }
+    y = rowY + 16;
+  }
 
   y += 2;
 
   // ─── DADOS DO CLIENTE ───
   y = sectionBar(y, "DADOS DO CLIENTE");
   y = fieldBox(M, y, CW, "NOME COMPLETO", data.clientName);
-  const cpfRow = y;
   fieldBox(M, y, halfW, "CPF", data.clientCpf);
   y = fieldBox(M + halfW + 4, y, halfW, "TELEFONE", data.clientPhone);
   y = fieldBox(M, y, CW, "ENDEREÇO", data.clientAddress);
@@ -236,11 +198,9 @@ function generateWarrantyPDF(data: {
   // ═══════════════════ PAGE 2 ═══════════════════
   doc.addPage();
 
-  // Top yellow stripe
   setFill(YELLOW);
   doc.rect(0, 0, W, 4, "F");
 
-  // Header
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   setColor(BLACK);
@@ -260,17 +220,29 @@ function generateWarrantyPDF(data: {
 
   let y2 = 38;
 
+  const isIphone = data.category === "iphone";
+
   // ─── O QUE A GARANTIA COBRE ───
   y2 = sectionBar(y2, "O QUE A GARANTIA COBRE");
-  const covers = [
-    "Defeitos de fabricação nos componentes internos",
-    "Falhas no processador, RAM e armazenamento",
-    "Problemas na placa-mãe por uso normal",
-    "Falhas na bateria com perda acima de 40% em até 30 dias",
-    "Defeitos na tela (pixels mortos acima do tolerado)",
-    "Problemas no teclado e trackpad por defeito",
-    "Qualquer defeito comprovado não causado pelo usuário",
-  ];
+  const covers = isIphone
+    ? [
+        "Defeitos de fabricação nos componentes internos",
+        "Falhas no funcionamento da placa lógica",
+        "Falhas na bateria com degradação anormal em até 30 dias",
+        "Defeitos na tela (touch, imagem, pixels mortos acima do tolerado)",
+        "Problemas em alto-falantes, microfone e câmeras por defeito",
+        "Falhas nos botões físicos e conectores por defeito",
+        "Qualquer defeito comprovado não causado pelo usuário",
+      ]
+    : [
+        "Defeitos de fabricação nos componentes internos",
+        "Falhas no processador, RAM e armazenamento",
+        "Problemas na placa-mãe por uso normal",
+        "Falhas na bateria com perda acima de 40% em até 30 dias",
+        "Defeitos na tela (pixels mortos acima do tolerado)",
+        "Problemas no teclado e trackpad por defeito",
+        "Qualquer defeito comprovado não causado pelo usuário",
+      ];
   doc.setFontSize(9);
   covers.forEach((item) => {
     doc.setFont("helvetica", "bold");
@@ -286,16 +258,27 @@ function generateWarrantyPDF(data: {
 
   // ─── O QUE A GARANTIA NÃO COBRE ───
   y2 = sectionBar(y2, "O QUE A GARANTIA NÃO COBRE", RED_DARK, WHITE);
-  const notCovers = [
-    "Danos físicos por quedas ou impactos",
-    "Danos por líquidos",
-    "Mau uso ou negligência",
-    "Instalação de softwares, vírus ou alterações no sistema",
-    "Desgaste natural de peças",
-    "Variações de tensão elétrica",
-    "Lacres violados ou abertura não autorizada",
-    "Danos estéticos (arranhões, manchas)",
-  ];
+  const notCovers = isIphone
+    ? [
+        "Danos físicos por quedas ou impactos",
+        "Danos por líquidos ou oxidação",
+        "Mau uso ou negligência",
+        "Jailbreak, alterações de sistema ou bloqueios por iCloud/Find My",
+        "Desgaste natural de peças",
+        "Uso de carregadores não certificados que danifiquem o aparelho",
+        "Lacres violados ou abertura/conserto não autorizado",
+        "Danos estéticos (arranhões, marcas de uso)",
+      ]
+    : [
+        "Danos físicos por quedas ou impactos",
+        "Danos por líquidos",
+        "Mau uso ou negligência",
+        "Instalação de softwares, vírus ou alterações no sistema",
+        "Desgaste natural de peças",
+        "Variações de tensão elétrica",
+        "Lacres violados ou abertura não autorizada",
+        "Danos estéticos (arranhões, manchas)",
+      ];
   doc.setFontSize(9);
   notCovers.forEach((item) => {
     doc.setFont("helvetica", "bold");
@@ -313,7 +296,7 @@ function generateWarrantyPDF(data: {
   y2 = sectionBar(y2, "COMO ACIONAR A GARANTIA");
   const steps = [
     "Entrar em contato com o vendedor apresentando este certificado",
-    "Equipamento avaliado em até 5 dias úteis",
+    isIphone ? "Aparelho avaliado em até 5 dias úteis" : "Equipamento avaliado em até 5 dias úteis",
     "Defeito coberto será reparado ou substituído",
   ];
   doc.setFontSize(9);
@@ -343,6 +326,28 @@ function generateWarrantyPDF(data: {
   return doc;
 }
 
+// Build specs list from a product or warranty record based on category
+function buildSpecs(category: string, src: any): SpecRow[] {
+  if (category === "iphone") {
+    return [
+      { label: "Modelo", value: src.processor || "" },
+      { label: "Armazenamento", value: src.storage || "" },
+      { label: "Cor", value: src.color || "" },
+      { label: "Saúde da Bateria", value: src.battery_health || "" },
+      { label: "iOS", value: src.os || "" },
+      { label: "Rede", value: src.network || "" },
+      { label: "IMEI", value: src.imei || "" },
+      { label: "Acompanhamentos", value: src.accessories || "" },
+    ];
+  }
+  return [
+    { label: "Processador", value: src.processor || "" },
+    { label: "Memória RAM", value: src.ram || "" },
+    { label: "Armazenamento", value: src.storage || "" },
+    { label: "Sistema Operacional", value: src.os || "" },
+  ];
+}
+
 // ─── Component ────────────────────────────────────────────
 
 const WarrantyForm = () => {
@@ -353,7 +358,6 @@ const WarrantyForm = () => {
   const [saving, setSaving] = useState(false);
   const [warranties, setWarranties] = useState<any[]>([]);
 
-  // Form state
   const [clientName, setClientName] = useState("");
   const [clientCpf, setClientCpf] = useState("");
   const [clientPhone, setClientPhone] = useState("");
@@ -361,14 +365,23 @@ const WarrantyForm = () => {
   const [sellerName, setSellerName] = useState("");
   const [saleDate, setSaleDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [warrantyDays, setWarrantyDays] = useState(90);
+
+  const [category, setCategory] = useState<string>("notebook");
+  // Notebook/Macbook
   const [processor, setProcessor] = useState("");
   const [ram, setRam] = useState("");
   const [storage, setStorage] = useState("");
   const [os, setOs] = useState("");
+  // iPhone extras
+  const [color, setColor] = useState("");
+  const [batteryHealth, setBatteryHealth] = useState("");
+  const [network, setNetwork] = useState("");
+  const [imei, setImei] = useState("");
+  const [accessories, setAccessories] = useState("");
 
   const validUntil = addDays(saleDate, warrantyDays);
+  const isIphone = category === "iphone";
 
-  // Load product + user + existing warranties
   useEffect(() => {
     if (!id) return;
 
@@ -387,17 +400,18 @@ const WarrantyForm = () => {
 
       const prod = prodRes.data as any;
       setProduct(prodRes.data);
-      // Use dedicated columns first, fall back to description parsing
-      const specs = extractSpecs(prodRes.data.description);
-      setProcessor(prod.processor || specs.processor);
-      setRam(prod.ram || specs.ram);
-      setStorage(prod.storage || specs.storage);
-      setOs(prod.os || specs.os);
+      setCategory(prod.category || "notebook");
+      setProcessor(prod.processor || "");
+      setRam(prod.ram || "");
+      setStorage(prod.storage || "");
+      setOs(prod.os || "");
+      setColor(prod.color || "");
+      setBatteryHealth(prod.battery_health || "");
+      setNetwork(prod.network || "");
+      setImei(prod.imei || "");
+      setAccessories(prod.accessories || "");
 
-      if (userRes.data.user?.email) {
-        setSellerName(userRes.data.user.email);
-      }
-
+      if (userRes.data.user?.email) setSellerName(userRes.data.user.email);
       if (warRes.data) setWarranties(warRes.data);
       setLoading(false);
     };
@@ -414,17 +428,21 @@ const WarrantyForm = () => {
     return true;
   };
 
+  const currentSrc = {
+    processor, ram, storage, os, color,
+    battery_health: batteryHealth, network, imei, accessories,
+  };
+
   const handleGenerate = async () => {
     if (!validate() || !product) return;
     setSaving(true);
 
     try {
-      // Get warranty number
       const { data: numData, error: numErr } = await supabase.rpc("generate_warranty_number");
       if (numErr) throw numErr;
       const warrantyNumber = numData as string;
 
-      const warrantyData = {
+      const warrantyData: any = {
         warranty_number: warrantyNumber,
         product_id: product.id,
         user_id: (await supabase.auth.getUser()).data.user?.id || null,
@@ -437,37 +455,32 @@ const WarrantyForm = () => {
         warranty_days: warrantyDays,
         valid_until: validUntil,
         equipment_name: product.name,
+        category,
         processor,
         ram,
         storage,
         os,
+        imei,
+        battery_health: batteryHealth,
+        network,
+        accessories,
       };
 
       const { error } = await supabase.from("warranties").insert(warrantyData);
       if (error) throw error;
 
-      // Generate and download PDF
       const doc = generateWarrantyPDF({
         warrantyNumber,
         equipmentName: product.name,
-        processor,
-        ram,
-        storage,
-        os,
-        clientName,
-        clientCpf,
-        clientPhone,
-        clientAddress,
-        warrantyDays,
-        saleDate,
-        validUntil,
-        sellerName,
+        category,
+        specs: buildSpecs(category, currentSrc),
+        clientName, clientCpf, clientPhone, clientAddress,
+        warrantyDays, saleDate, validUntil, sellerName,
       });
 
       doc.save(`Garantia_${warrantyNumber}.pdf`);
       toast.success("Garantia gerada com sucesso!");
 
-      // Refresh list
       const { data: updated } = await supabase
         .from("warranties")
         .select("*")
@@ -475,11 +488,7 @@ const WarrantyForm = () => {
         .order("created_at", { ascending: false });
       if (updated) setWarranties(updated);
 
-      // Reset client fields
-      setClientName("");
-      setClientCpf("");
-      setClientPhone("");
-      setClientAddress("");
+      setClientName(""); setClientCpf(""); setClientPhone(""); setClientAddress("");
     } catch (err: any) {
       toast.error("Erro ao gerar garantia: " + (err.message || "Erro desconhecido"));
     } finally {
@@ -487,44 +496,29 @@ const WarrantyForm = () => {
     }
   };
 
+  const buildFromRecord = (w: any) => ({
+    warrantyNumber: w.warranty_number,
+    equipmentName: w.equipment_name,
+    category: w.category || "notebook",
+    specs: buildSpecs(w.category || "notebook", w),
+    clientName: w.client_name,
+    clientCpf: w.client_cpf,
+    clientPhone: w.client_phone,
+    clientAddress: w.client_address,
+    warrantyDays: w.warranty_days,
+    saleDate: w.sale_date,
+    validUntil: w.valid_until,
+    sellerName: w.seller_name,
+  });
+
   const handleReprint = (w: any) => {
-    const doc = generateWarrantyPDF({
-      warrantyNumber: w.warranty_number,
-      equipmentName: w.equipment_name,
-      processor: w.processor,
-      ram: w.ram,
-      storage: w.storage,
-      os: w.os,
-      clientName: w.client_name,
-      clientCpf: w.client_cpf,
-      clientPhone: w.client_phone,
-      clientAddress: w.client_address,
-      warrantyDays: w.warranty_days,
-      saleDate: w.sale_date,
-      validUntil: w.valid_until,
-      sellerName: w.seller_name,
-    });
+    const doc = generateWarrantyPDF(buildFromRecord(w));
     doc.save(`Garantia_${w.warranty_number}.pdf`);
     toast.success("PDF baixado!");
   };
 
   const handlePrint = (w: any) => {
-    const doc = generateWarrantyPDF({
-      warrantyNumber: w.warranty_number,
-      equipmentName: w.equipment_name,
-      processor: w.processor,
-      ram: w.ram,
-      storage: w.storage,
-      os: w.os,
-      clientName: w.client_name,
-      clientCpf: w.client_cpf,
-      clientPhone: w.client_phone,
-      clientAddress: w.client_address,
-      warrantyDays: w.warranty_days,
-      saleDate: w.sale_date,
-      validUntil: w.valid_until,
-      sellerName: w.seller_name,
-    });
+    const doc = generateWarrantyPDF(buildFromRecord(w));
     const blobUrl = doc.output("bloburl") as unknown as string;
     window.open(blobUrl, "_blank");
   };
@@ -553,35 +547,73 @@ const WarrantyForm = () => {
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-6 space-y-6 animate-fade-up">
-        {/* Product info */}
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">Produto</p>
+          <p className="text-sm text-muted-foreground">
+            {isIphone ? "Aparelho" : "Produto"}
+          </p>
           <p className="font-bold text-foreground">{product.name}</p>
         </div>
 
-        {/* Specs (auto-filled, editable) */}
+        {/* Specs */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Especificações do Produto
+            Especificações do {isIphone ? "Aparelho" : "Produto"}
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="processor">Processador</Label>
-              <Input id="processor" value={processor} onChange={(e) => setProcessor(e.target.value)} />
+          {isIphone ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="model">Modelo</Label>
+                <Input id="model" value={processor} onChange={(e) => setProcessor(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="storage">Armazenamento</Label>
+                <Input id="storage" value={storage} onChange={(e) => setStorage(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="color">Cor</Label>
+                <Input id="color" value={color} onChange={(e) => setColor(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="bh">Saúde da bateria</Label>
+                <Input id="bh" value={batteryHealth} onChange={(e) => setBatteryHealth(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="ios">iOS</Label>
+                <Input id="ios" value={os} onChange={(e) => setOs(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="network">Rede</Label>
+                <Input id="network" value={network} onChange={(e) => setNetwork(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="imei">IMEI</Label>
+                <Input id="imei" value={imei} onChange={(e) => setImei(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="acc">Acompanhamentos</Label>
+                <Input id="acc" value={accessories} onChange={(e) => setAccessories(e.target.value)} />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="ram">Memória RAM</Label>
-              <Input id="ram" value={ram} onChange={(e) => setRam(e.target.value)} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="processor">Processador</Label>
+                <Input id="processor" value={processor} onChange={(e) => setProcessor(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="ram">Memória RAM</Label>
+                <Input id="ram" value={ram} onChange={(e) => setRam(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="storage">Armazenamento</Label>
+                <Input id="storage" value={storage} onChange={(e) => setStorage(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="os">Sistema Operacional</Label>
+                <Input id="os" value={os} onChange={(e) => setOs(e.target.value)} />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="storage">Armazenamento</Label>
-              <Input id="storage" value={storage} onChange={(e) => setStorage(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="os">Sistema Operacional</Label>
-              <Input id="os" value={os} onChange={(e) => setOs(e.target.value)} />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Client data */}
@@ -655,7 +687,6 @@ const WarrantyForm = () => {
           </div>
         </div>
 
-        {/* Generate buttons */}
         <div className="flex gap-3">
           <Button onClick={handleGenerate} disabled={saving} className="flex-1 active:scale-[0.97]">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
@@ -663,7 +694,6 @@ const WarrantyForm = () => {
           </Button>
         </div>
 
-        {/* Existing warranties */}
         {warranties.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
