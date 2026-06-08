@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
+import OfflineBanner from "./components/OfflineBanner";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProductForm from "./pages/ProductForm";
@@ -55,6 +56,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Sonner />
+        <OfflineBanner />
         <BrowserRouter>
           <Routes>
             {/* Public catalog routes */}
