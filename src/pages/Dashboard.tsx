@@ -19,7 +19,6 @@ import {
   Laptop,
   Link2,
   Filter,
-  Eye,
   Pencil,
   Trash2,
 } from "lucide-react";
