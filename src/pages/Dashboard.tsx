@@ -104,11 +104,7 @@ const Dashboard = () => {
   const filtered = useMemo(() => {
     let list = products;
 
-    if (tab === "__featured") {
-      list = list.filter((p) => (p as any).is_featured);
-    } else if (tab === "__top") {
-      list = [...list].sort((a, b) => ((b as any).views_count || 0) - ((a as any).views_count || 0));
-    } else if (tab !== "all") {
+    if (tab !== "all") {
       list = list.filter((p) => ((p as any).category || "notebook") === tab);
     }
 
