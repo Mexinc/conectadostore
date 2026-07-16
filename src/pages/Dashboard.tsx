@@ -22,7 +22,6 @@ import {
   Eye,
   Pencil,
   Trash2,
-  Star,
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
@@ -33,8 +32,6 @@ type Product = Tables<"products">;
 const TABS = [
   { value: "all", label: "Todos" },
   ...CATEGORIES.map((c) => ({ value: c.key, label: c.label })),
-  { value: "__featured", label: "Destaques" },
-  { value: "__top", label: "Mais vistos" },
 ];
 
 const formatPrice = (value: number) =>
