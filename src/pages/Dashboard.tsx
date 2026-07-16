@@ -252,20 +252,6 @@ const Dashboard = () => {
                     <div className="absolute top-2 left-2">
                       <StatusBadge status={product.status} />
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleFeatured(product.id, Boolean(ap.is_featured));
-                      }}
-                      className={`absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
-                        ap.is_featured
-                          ? "border-brand-yellow bg-brand-yellow text-brand-dark"
-                          : "border-border bg-background/80 text-muted-foreground hover:text-foreground"
-                      }`}
-                      title={ap.is_featured ? "Remover destaque" : "Marcar como destaque"}
-                    >
-                      <Star className={`h-3.5 w-3.5 ${ap.is_featured ? "fill-current" : ""}`} />
-                    </button>
                   </div>
 
                   <div className="p-4">
