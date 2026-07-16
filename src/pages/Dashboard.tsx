@@ -85,16 +85,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleToggleFeatured = async (id: string, current: boolean) => {
-    const { error } = await supabase.from("products").update({ is_featured: !current } as any).eq("id", id);
-    if (error) toast.error("Erro ao atualizar destaque");
-    else {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === id ? ({ ...p, is_featured: !current } as any) : p))
-      );
-      toast.success(!current ? "Marcado como destaque" : "Removido dos destaques");
-    }
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
