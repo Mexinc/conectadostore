@@ -316,16 +316,6 @@ Código: ${code}`;
         </div>
       </div>
 
-      {related.length > 0 && (
-        <section className="mt-10">
-          <h2 className="mb-4 text-lg font-bold text-foreground">Produtos relacionados</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((r) => (
-              <PublicProductCard key={r.id} product={r} />
-            ))}
-          </div>
-        </section>
-      )}
     </CatalogLayout>
   );
 };
