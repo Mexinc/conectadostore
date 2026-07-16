@@ -280,10 +280,6 @@ const Dashboard = () => {
                       <span className="text-base font-bold tabular-nums text-foreground">
                         {formatPrice(product.price)}
                       </span>
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <Eye className="h-3 w-3" />
-                        <span className="tabular-nums">{ap.views_count ?? 0}</span>
-                      </div>
                     </div>
 
                     <div className="mt-3 flex items-center gap-2">
