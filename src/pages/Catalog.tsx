@@ -5,34 +5,21 @@ import CatalogLayout from "@/components/catalog/CatalogLayout";
 import PublicProductCard from "@/components/catalog/PublicProductCard";
 import { CATEGORIES } from "@/lib/categories";
 import type { Tables } from "@/integrations/supabase/types";
-import { Sparkles } from "lucide-react";
 
 type Product = Tables<"products">;
 
 const Catalog = () => {
-  const [featured, setFeatured] = useState<Product[]>([]);
   const [recent, setRecent] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const [{ data: feat }, { data: rec }] = await Promise.all([
-        supabase
-          .from("products")
-          .select("*")
-          .eq("status", "available")
-          .eq("is_featured", true)
-          .order("created_at", { ascending: false })
-          .limit(8),
-        supabase
-          .from("products")
-          .select("*")
-          .eq("status", "available")
-          .order("created_at", { ascending: false })
-          .limit(8),
-      ]);
-      setFeatured(feat || []);
-      setRecent(rec || []);
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("status", "available")
+        .order("created_at", { ascending: false });
+      setRecent(data || []);
       setLoading(false);
     };
     load();
@@ -43,11 +30,10 @@ const Catalog = () => {
       {/* Hero */}
       <section className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-dark to-foreground p-6 sm:p-10">
         <h1 className="text-2xl font-bold text-background sm:text-4xl">
-          Tecnologia confiável,{" "}
-          <span className="text-brand-yellow">preço justo.</span>
+          Modelos <span className="text-brand-yellow">disponíveis.</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-background/70 sm:text-base">
-          Notebooks, iPhones, impressoras e acessórios com garantia própria. Encontre o seu na vitrine abaixo.
+          Confira os produtos em estoque. Para comprar, fale com a loja.
         </p>
       </section>
 
@@ -73,34 +59,9 @@ const Catalog = () => {
         </div>
       </section>
 
-      {/* Featured */}
-      {(loading || featured.length > 0) && (
-        <section className="mb-10">
-          <div className="mb-4 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-brand-yellow" />
-            <h2 className="text-lg font-bold text-foreground">Ofertas em destaque</h2>
-          </div>
-          {loading ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-72 animate-pulse rounded-xl bg-muted" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {featured.map((p) => (
-                <PublicProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Recent */}
+      {/* Listing */}
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground">Mais recentes</h2>
-        </div>
+        <h2 className="mb-4 text-lg font-bold text-foreground">Produtos disponíveis</h2>
         {loading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
