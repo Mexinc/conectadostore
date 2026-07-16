@@ -19,10 +19,8 @@ import {
   Laptop,
   Link2,
   Filter,
-  Eye,
   Pencil,
   Trash2,
-  Star,
 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Tables } from "@/integrations/supabase/types";
@@ -33,8 +31,6 @@ type Product = Tables<"products">;
 const TABS = [
   { value: "all", label: "Todos" },
   ...CATEGORIES.map((c) => ({ value: c.key, label: c.label })),
-  { value: "__featured", label: "Destaques" },
-  { value: "__top", label: "Mais vistos" },
 ];
 
 const formatPrice = (value: number) =>
@@ -89,16 +85,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleToggleFeatured = async (id: string, current: boolean) => {
-    const { error } = await supabase.from("products").update({ is_featured: !current } as any).eq("id", id);
-    if (error) toast.error("Erro ao atualizar destaque");
-    else {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === id ? ({ ...p, is_featured: !current } as any) : p))
-      );
-      toast.success(!current ? "Marcado como destaque" : "Removido dos destaques");
-    }
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -107,11 +93,7 @@ const Dashboard = () => {
   const filtered = useMemo(() => {
     let list = products;
 
-    if (tab === "__featured") {
-      list = list.filter((p) => (p as any).is_featured);
-    } else if (tab === "__top") {
-      list = [...list].sort((a, b) => ((b as any).views_count || 0) - ((a as any).views_count || 0));
-    } else if (tab !== "all") {
+    if (tab !== "all") {
       list = list.filter((p) => ((p as any).category || "notebook") === tab);
     }
 
@@ -259,20 +241,6 @@ const Dashboard = () => {
                     <div className="absolute top-2 left-2">
                       <StatusBadge status={product.status} />
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleFeatured(product.id, Boolean(ap.is_featured));
-                      }}
-                      className={`absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
-                        ap.is_featured
-                          ? "border-brand-yellow bg-brand-yellow text-brand-dark"
-                          : "border-border bg-background/80 text-muted-foreground hover:text-foreground"
-                      }`}
-                      title={ap.is_featured ? "Remover destaque" : "Marcar como destaque"}
-                    >
-                      <Star className={`h-3.5 w-3.5 ${ap.is_featured ? "fill-current" : ""}`} />
-                    </button>
                   </div>
 
                   <div className="p-4">
@@ -301,10 +269,6 @@ const Dashboard = () => {
                       <span className="text-base font-bold tabular-nums text-foreground">
                         {formatPrice(product.price)}
                       </span>
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <Eye className="h-3 w-3" />
-                        <span className="tabular-nums">{ap.views_count ?? 0}</span>
-                      </div>
                     </div>
 
                     <div className="mt-3 flex items-center gap-2">

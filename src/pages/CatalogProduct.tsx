@@ -15,7 +15,6 @@ import {
   XCircle,
 } from "lucide-react";
 import CatalogLayout from "@/components/catalog/CatalogLayout";
-import PublicProductCard from "@/components/catalog/PublicProductCard";
 import { buildWhatsappUrl, shortCode } from "@/lib/store-config";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/categories";
 import type { Tables } from "@/integrations/supabase/types";
@@ -29,7 +28,6 @@ const CatalogProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
-  const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
@@ -43,33 +41,13 @@ const CatalogProduct = () => {
       .select("*")
       .eq("id", id)
       .maybeSingle()
-      .then(async ({ data, error }) => {
+      .then(({ data, error }) => {
         if (error || !data) {
           navigate("/catalogo");
           return;
         }
         setProduct(data);
         setLoading(false);
-
-        // Best-effort increment view count
-        supabase.rpc("increment_product_views", { _product_id: id }).then(() => {});
-
-        // Related: same subcategory or brand, excluding self, only available
-        const ap = data as any;
-        const orParts: string[] = [];
-        if (ap.subcategory) orParts.push(`subcategory.eq.${ap.subcategory}`);
-        if (ap.brand) orParts.push(`brand.eq.${ap.brand}`);
-        if (orParts.length > 0) {
-          const { data: rel } = await supabase
-            .from("products")
-            .select("*")
-            .eq("status", "available")
-            .neq("id", id)
-            .or(orParts.join(","))
-            .order("views_count", { ascending: false })
-            .limit(4);
-          setRelated(rel || []);
-        }
       });
   }, [id, navigate]);
 
@@ -338,16 +316,6 @@ Código: ${code}`;
         </div>
       </div>
 
-      {related.length > 0 && (
-        <section className="mt-10">
-          <h2 className="mb-4 text-lg font-bold text-foreground">Produtos relacionados</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {related.map((r) => (
-              <PublicProductCard key={r.id} product={r} />
-            ))}
-          </div>
-        </section>
-      )}
     </CatalogLayout>
   );
 };
