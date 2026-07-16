@@ -15,7 +15,6 @@ import {
   XCircle,
 } from "lucide-react";
 import CatalogLayout from "@/components/catalog/CatalogLayout";
-import PublicProductCard from "@/components/catalog/PublicProductCard";
 import { buildWhatsappUrl, shortCode } from "@/lib/store-config";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/categories";
 import type { Tables } from "@/integrations/supabase/types";
