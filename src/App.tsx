@@ -68,6 +68,7 @@ function App() {
 
             {/* Admin routes (auth required) */}
             <Route path="/" element={<AuthWrapper><Dashboard /></AuthWrapper>} />
+            <Route path="/admin" element={<AuthWrapper><Navigate to="/products/new" replace /></AuthWrapper>} />
             <Route path="/products/new" element={<AuthWrapper><ProductForm /></AuthWrapper>} />
             <Route path="/products/:id" element={<AuthWrapper><ProductDetail /></AuthWrapper>} />
             <Route path="/products/:id/warranty" element={<AuthWrapper><WarrantyForm /></AuthWrapper>} />
