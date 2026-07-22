@@ -10,7 +10,19 @@
     <!-- PWA -->
     <meta name="theme-color" content="#ffcc00" />
     <meta name="application-name" content="ConectadoStore" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link id="app-manifest" rel="manifest" href="/manifest.webmanifest" />
+    <script>
+      (function () {
+        try {
+          if (location.pathname.indexOf('/admin') === 0 || location.pathname.indexOf('/products') === 0) {
+            var link = document.getElementById('app-manifest');
+            if (link) link.setAttribute('href', '/manifest-admin.webmanifest');
+            var t = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+            if (t) t.setAttribute('content', 'Admin');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
