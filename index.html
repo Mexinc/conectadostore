@@ -10,16 +10,13 @@
     <!-- PWA -->
     <meta name="theme-color" content="#ffcc00" />
     <meta name="application-name" content="ConectadoStore" />
+    <meta name="apple-mobile-web-app-title" content="Admin" />
     <link id="app-manifest" rel="manifest" href="/manifest.webmanifest" />
     <script>
       (function () {
         try {
-          if (location.pathname.indexOf('/admin') === 0 || location.pathname.indexOf('/products') === 0) {
-            var link = document.getElementById('app-manifest');
-            if (link) link.setAttribute('href', '/manifest-admin.webmanifest');
-            var t = document.querySelector('meta[name="apple-mobile-web-app-title"]');
-            if (t) t.setAttribute('content', 'Admin');
-          }
+          var link = document.getElementById('app-manifest');
+          if (link) link.setAttribute('href', '/manifest.webmanifest');
         } catch (e) {}
       })();
     </script>
@@ -29,15 +26,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Conectado" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/icons/icon-512.png" />
     <meta property="og:title" content="ConectadoStore" />
     <meta property="og:description" content="Catálogo de notebooks, iPhones e equipamentos seminovos" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/icons/icon-512.png" />
     <meta name="twitter:title" content="ConectadoStore" />
     <meta name="twitter:description" content="Catálogo de notebooks, iPhones e equipamentos seminovos" />
   </head>
