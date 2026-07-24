@@ -15,7 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import CatalogLayout from "@/components/catalog/CatalogLayout";
-import { buildWhatsappUrl, shortCode } from "@/lib/store-config";
+import { buildProductShareUrl, buildWhatsappUrl, shortCode } from "@/lib/store-config";
 import { getCategoryLabel, getSubcategoryLabel } from "@/lib/categories";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -85,7 +85,7 @@ Preço: ${formatPrice(product.price)}
 Código: ${code}`;
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const url = buildProductShareUrl(product.id);
     if (navigator.share) {
       try {
         await navigator.share({ title: product.name, text: product.name, url });
