@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download, ShieldCheck, Link2 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
-import { buildProductShareUrl } from "@/lib/store-config";
+import { buildProductCatalogUrl } from "@/lib/store-config";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
@@ -269,7 +269,7 @@ const ProductDetail = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  navigator.clipboard.writeText(buildProductShareUrl(product.id));
+                  navigator.clipboard.writeText(buildProductCatalogUrl(product.id));
                   toast.success("Link do produto copiado!");
                 }}
                 className="active:scale-[0.97] transition-all"
