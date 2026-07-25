@@ -378,7 +378,10 @@ const ProductForm = () => {
                   {photos.map((url, i) => (
                     <SortablePhoto key={url} url={url} index={i} onRemove={removePhoto} />
                   ))}
-                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 text-muted-foreground transition-colors hover:border-brand-yellow hover:text-foreground">
+                  <label
+                    htmlFor="photo-upload"
+                    className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 text-muted-foreground transition-colors hover:border-brand-yellow hover:text-foreground"
+                  >
                     {uploading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
@@ -388,11 +391,12 @@ const ProductForm = () => {
                       </>
                     )}
                     <input
+                      id="photo-upload"
                       type="file"
                       accept="image/*"
                       multiple
                       onChange={handlePhotoUpload}
-                      className="hidden"
+                      className="sr-only"
                       disabled={uploading}
                     />
                   </label>

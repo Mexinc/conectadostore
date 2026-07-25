@@ -269,7 +269,7 @@ const ProductDetail = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  navigator.clipboard.writeText(buildProductShareUrl(product.id));
+                  navigator.clipboard.writeText(buildProductCatalogUrl(product.id));
                   toast.success("Link do produto copiado!");
                 }}
                 className="active:scale-[0.97] transition-all"
