@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeft, Copy, ChevronLeft, ChevronRight, X, Loader2, Download, ShieldCheck, Link2 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
-import { buildProductShareUrl } from "@/lib/store-config";
+import { buildProductCatalogUrl } from "@/lib/store-config";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
